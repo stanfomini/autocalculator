@@ -1,11 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserManagementcontroller;
-use App\Http\Livewire\Dashboard;
-//use App\Http\Livewire\Customer\Dashboard as CustomerDashboard;
+use App\Http\Controllers\PasswordController;
 use App\Http\Livewire\AddCustomerForm;
 
+// Existing routes...
 
 Route::get('/', function () {
     return view('welcome');
@@ -13,7 +12,6 @@ Route::get('/', function () {
 
 Route::get('/password/change', [PasswordController::class, 'showChangePasswordForm'])->name('password.change');
 Route::post('/password/change', [PasswordController::class, 'updatePassword']);
-
 
 Route::middleware([
     'auth:sanctum',
@@ -24,12 +22,10 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
-// Customer Dashboard Route (No authentication middleware)
-//Route::get('/dashboard/{companySlug}/{customerPhone}', CustomerDashboard::class)->name('customer.dashboard');
-//
 
 Route::middleware(['auth:sanctum', 'verified'])->get('/add-customer', AddCustomerForm::class)->name('add-customer');
 
-
-
-
+// New calculator route
+Route::get('/calculator', function () {
+    return view('calculator');
+});
