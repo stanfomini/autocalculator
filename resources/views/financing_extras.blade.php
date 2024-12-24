@@ -1,3 +1,5 @@
-<!-- Example additional financing-specific partial or resources that might be used in the future -->
-<h2>Financing Additional Info</h2>
-<p>Use this partial to display extra financing details as needed.</p>
+<!-- This file can hold additional financing-specific components or partials -->
+<div>
+  <h2>Additional Financing Details</h2>
+  <p>This partial can be included to display more granular financing info if needed.</p>
+</div>
