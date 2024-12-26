@@ -1,31 +1,22 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PasswordController;
-use App\Http\Livewire\AddCustomerForm;
+use App\Http\Controllers\TestItemController;
 
-// Existing routes...
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. 
+|
+*/
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/password/change', [PasswordController::class, 'showChangePasswordForm'])->name('password.change');
-Route::post('/password/change', [PasswordController::class, 'updatePassword']);
+// Existing routes...
 
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
-});
-
-Route::middleware(['auth:sanctum', 'verified'])->get('/add-customer', AddCustomerForm::class)->name('add-customer');
-
-// New calculator route
-Route::get('/calculator', function () {
-    return view('calculator');
-});
+// New route for /test
+Route::resource('/test', TestItemController::class)->only(['index', 'store']);
