@@ -32,9 +32,9 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 });
 
-// Route for the Appointment scheduler (SPA style)
-Route::get('/schedule', [AppointmentController::class, 'index'])->name('appointments.index');
-Route::post('/schedule', [AppointmentController::class, 'store'])->name('appointments.store');
+// Resourceful routes for appointments
+// This gives us index, create, store, show, edit, update, destroy
+Route::resource('/schedule', AppointmentController::class);
 
-// Server-Sent Event (SSE) route for real-time appointments
+// SSE route for real-time appointment listing
 Route::get('/appointments/sse', [AppointmentSseController::class, 'stream'])->name('appointments.sse');
