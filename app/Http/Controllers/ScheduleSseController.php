@@ -6,18 +6,19 @@ use App\Models\Schedule;
 use Carbon\Carbon;
 
 /**
- * SSE controller for real-time updates from schedules table
+ * Streams schedules over SSE so newly created records appear 
+ * in real time on /testing1 route across all connected clients.
  */
 class ScheduleSseController extends Controller
 {
     public function stream()
     {
-        // SSE Headers
+        // SSE headers
         header('Content-Type: text/event-stream');
         header('Cache-Control: no-cache');
         header('X-Accel-Buffering: no');
 
-        // Keep SSE open for ~30 seconds
+        // Keep the loop ~30 seconds for demonstration
         $startTime = time();
         while (true) {
             if ((time() - $startTime) > 30) {
@@ -28,14 +29,14 @@ class ScheduleSseController extends Controller
                 break;
             }
 
-            $schedules = Schedule::all()->map(function ($row) {
-                $row->is_new = $row->created_at
-                    && $row->created_at->gt(Carbon::now()->subMinutes(10));
-                return $row;
+            // Load all schedules, add "is_new" if created < 10 min
+            $all = Schedule::orderBy('id', 'desc')->get()->map(function($r) {
+                $r->is_new = $r->created_at && $r->created_at->gt(Carbon::now()->subMinutes(10));
+                return $r;
             });
 
             echo "event: message\n";
-            echo "data: " . json_encode($schedules) . "\n\n";
+            echo "data: " . json_encode($all) . "\n\n";
             flush();
 
             sleep(3);
