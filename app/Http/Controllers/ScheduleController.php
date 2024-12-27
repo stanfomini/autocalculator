@@ -32,9 +32,12 @@ class ScheduleController extends Controller
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-        // Use the full $request->all() instead of manually picking fields
-        $sched = Schedule::create($request->all());
-
+        $sched = Schedule::create([
+            'first_name'   => $request->input('first_name'),
+            'last_name'    => $request->input('last_name'),
+            'phone'        => $request->input('phone'),
+            'scheduled_at' => $request->input('scheduled_at'),
+        ]);
 
         return response()->json([
             'status' => 'success',
@@ -62,8 +65,12 @@ class ScheduleController extends Controller
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-        // Use the full $request->all() for updating instead of manual picking.
-        $testing1->update($request->all());
+        $testing1->update([
+            'first_name'   => $request->input('first_name'),
+            'last_name'    => $request->input('last_name'),
+            'phone'        => $request->input('phone'),
+            'scheduled_at' => $request->input('scheduled_at'),
+        ]);
 
         return response()->json([
             'status' => 'success',
