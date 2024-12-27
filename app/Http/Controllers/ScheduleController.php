@@ -6,13 +6,13 @@ use App\Models\Schedule;
 use Illuminate\Http\Request;
 
 /**
- * Resourceful controller for the "schedules" table, using route /testing1.
+ * Resourceful controller for /testing1, using the schedules table.
  */
 class ScheduleController extends Controller
 {
     public function index()
     {
-        // Return the single-page scheduler
+        // Return the SPA Blade
         return view('schedule.index');
     }
 
@@ -24,7 +24,6 @@ class ScheduleController extends Controller
 
     public function store(Request $request)
     {
-        // Validate and store the record
         $request->validate([
             'first_name'   => 'required|string|max:100',
             'last_name'    => 'required|string|max:100',
@@ -32,12 +31,12 @@ class ScheduleController extends Controller
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-        $sched = Schedule::create([
-            'first_name'   => $request->input('first_name'),
-            'last_name'    => $request->input('last_name'),
-            'phone'        => $request->input('phone'),
-            'scheduled_at' => $request->input('scheduled_at'),
-        ]);
+        $sched = Schedule::create($request->only([
+            'first_name',
+            'last_name',
+            'phone',
+            'scheduled_at',
+        ]));
 
         return response()->json([
             'status' => 'success',
@@ -45,14 +44,15 @@ class ScheduleController extends Controller
         ]);
     }
 
-    // For non-SPA usage, show a single record
     public function show(Schedule $testing1)
     {
+        // Non-SPA fallback
         return view('schedule.show', ['sched' => $testing1]);
     }
 
     public function edit(Schedule $testing1)
     {
+        // Non-SPA fallback
         return view('schedule.edit', ['sched' => $testing1]);
     }
 
@@ -65,12 +65,12 @@ class ScheduleController extends Controller
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-        $testing1->update([
-            'first_name'   => $request->input('first_name'),
-            'last_name'    => $request->input('last_name'),
-            'phone'        => $request->input('phone'),
-            'scheduled_at' => $request->input('scheduled_at'),
-        ]);
+        $testing1->update($request->only([
+            'first_name',
+            'last_name',
+            'phone',
+            'scheduled_at',
+        ]));
 
         return response()->json([
             'status' => 'success',
