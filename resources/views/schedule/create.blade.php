@@ -2,26 +2,26 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Create Schedule</title>
+    <title>Create (Non-SPA)</title>
 </head>
 <body>
-    <h1>Create (Non-SPA Fallback)</h1>
-    <form method="POST" action="/testing1">
+    <h1>Create Form (fallback)</h1>
+    <form action="/testing1" method="POST">
         @csrf
         <p>
-            <label>First Name:</label>
+            <label>First Name</label>
             <input type="text" name="first_name" required>
         </p>
         <p>
-            <label>Last Name:</label>
+            <label>Last Name</label>
             <input type="text" name="last_name" required>
         </p>
         <p>
-            <label>Phone:</label>
+            <label>Phone</label>
             <input type="text" name="phone" required>
         </p>
         <p>
-            <label>Datetime:</label>
+            <label>DateTime</label>
             <input type="datetime-local" name="scheduled_at" required>
         </p>
         <button type="submit">Save</button>
