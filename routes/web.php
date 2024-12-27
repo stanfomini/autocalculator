@@ -22,3 +22,7 @@ Route::resource('/test', TestItemController::class)->only(['index', 'store']);
 
 // New route for /hello
 Route::resource('/hello', HelloItemController::class)->only(['index', 'store']);
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+});
