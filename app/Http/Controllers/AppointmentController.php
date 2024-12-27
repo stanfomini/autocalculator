@@ -12,21 +12,30 @@ class AppointmentController extends Controller
         return view('schedule.index');
     }
 
+    // Store new appointment (via JSON Fetch from front end)
     public function store(Request $request)
     {
         $request->validate([
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
             'phone' => 'required|string|max:30',
-            'appointment_datetime' => 'required|date_format:Y-m-d\TH:i', // matches the HTML datetime-local format
+            'appointment_datetime' => 'required|date_format:Y-m-d\TH:i', // matches HTML datetime-local
         ]);
 
-        Appointment::create($request->only('first_name', 'last_name', 'phone', 'appointment_datetime'));
+        $appt = Appointment::create($request->only(
+            'first_name',
+            'last_name',
+            'phone',
+            'appointment_datetime'
+        ));
 
-        // Optionally broadcast event here (e.g., AppointmentCreated)
+        // Optionally broadcast an event here for WebSockets,
+        // but SSE approach will pick up newly stored records
+        // automatically whenever the SSE stream reloads them.
 
         return response()->json([
             'status' => 'success',
+            'appointment' => $appt,
         ]);
     }
 }
