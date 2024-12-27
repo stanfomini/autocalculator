@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" x-data="spaApp()" x-init="init()">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apex Negotiations - Drive Home the Best Deal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/alpinejs@3.12.0/dist/cdn.min.js" defer></script>
+  <style>
+    .highlight {
+      background-color: #FFF59C; /* light yellow highlight */
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans">
+
+<!-- Alpine.js SPA Logic -->
+<script>
+function spaApp(){
+  return {
+    route: 'home',
+    init(){
+      this.updateRouteFromHash();
+      window.addEventListener('hashchange', () => {
+        this.updateRouteFromHash();
+      });
+    },
+    updateRouteFromHash(){
+      const hash = window.location.hash.replace('#','');
+      this.route = hash ? hash : 'home';
+    },
+    navigateTo(newRoute){
+      window.location.hash = newRoute;
+    }
+  }
+}
+</script>
+
+<!-- Top Navigation -->
+<nav class="bg-purple-900 text-white">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex justify-between items-center py-4">
+      <div class="text-xl font-bold cursor-pointer" @click="navigateTo('home')">
+        Apex Negotiations
+      </div>
+      <ul class="flex space-x-6 text-lg">
+        <li><a href="#home" class="hover:underline">Home</a></li>
+        <li><a href="#process" class="hover:underline">Our Process</a></li>
+        <li><a href="#pricing" class="hover:underline">Pricing</a></li>
+        <li><a href="#calculator" class="hover:underline">Free Calculator</a></li>
+        <li><a href="#faq" class="hover:underline">FAQ</a></li>
+        <li><a href="#guarantee" class="hover:underline">Guarantee</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- HOME PAGE -->
+<div x-show="route === 'home'" x-transition class="py-12">
+  <section class="bg-white py-12">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-4xl font-bold text-purple-900">
+        Don?t Let Car Dealers Take Advantage of You
+      </h1>
+      <p class="mt-4 text-xl text-gray-700">
+        At <span class="highlight">Apex Negotiations</span>, we don?t just shop around. We force dealerships to compete for your business, ensuring you drive home with the absolute best deal. With over <span class="highlight">30 years of combined car industry experience</span>, we?ve saved our clients thousands?even tens of thousands?of dollars in car purchases.
+      </p>
+      <button @click="navigateTo('pricing')" 
+              class="mt-6 px-8 py-4 bg-amber-500 text-white rounded-lg text-lg hover:bg-amber-600 transition-all">
+        Start Saving Now
+      </button>
+    </div>
+  </section>
+</div>
+
+<!-- OUR PROCESS PAGE -->
+<div x-show="route === 'process'" x-transition class="py-12">
+  <section class="bg-white py-12">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl font-bold text-purple-900">How Apex Negotiations Secures Your Best Deal</h2>
+      <p class="mt-4 text-lg text-gray-700">
+        Our proprietary negotiation platform puts dealerships in a head-to-head bidding war for your sale. Here?s how it works:
+      </p>
+      <div class="mt-8 space-y-6 text-left">
+        <div class="bg-gray-50 p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold text-purple-900">1. Tell Us Your Dream Car</h3>
+          <p class="mt-2 text-gray-700">
+            You specify the make, model, and features. We tap into our extensive dealer network?brands across the nation.
+          </p>
+        </div>
+        <div class="bg-gray-50 p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold text-purple-900">2. We Unleash the Bidding War</h3>
+          <p class="mt-2 text-gray-700">
+            We send out a lead to multiple partner dealerships simultaneously. They know they must compete fiercely, or they lose the sale.
+          </p>
+        </div>
+        <div class="bg-gray-50 p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold text-purple-900">3. You Get the Final Say</h3>
+          <p class="mt-2 text-gray-700">
+            Dealers come back with their best offers, often beating each other?s discounts, financing options, and added perks. We present you the top contenders so you can choose the winning offer.
+          </p>
+        </div>
+      </div>
+      <div class="text-center mt-10">
+        <button @click="navigateTo('pricing')" 
+                class="px-8 py-4 bg-purple-700 text-white rounded-lg text-lg hover:bg-purple-800 transition-all">
+          View Our Transparent Pricing
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- PRICING PAGE -->
+<div x-show="route === 'pricing'" x-transition class="py-12">
+  <section class="bg-white py-12">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl font-bold text-purple-900">Simple, Straightforward Pricing</h2>
+      <p class="mt-4 text-lg text-gray-700">
+        No hidden fees. No gimmicks. Just honest value.
+      </p>
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="p-6 bg-gray-50 rounded-lg shadow text-center">
+          <h3 class="text-xl font-semibold text-purple-900">Standard Package</h3>
+          <p class="mt-2 text-gray-700">
+            We negotiate on your behalf for one vehicle purchase.
+          </p>
+          <p class="mt-4 text-2xl font-bold text-amber-500">$997 Flat Fee</p>
+          <ul class="mt-4 text-left text-gray-700 space-y-2">
+            <li>? Expert negotiation by seasoned car industry pros</li>
+            <li>? Access to multiple top dealerships competing for your sale</li>
+            <li>? Personalized guidance on financing and warranties</li>
+          </ul>
+          <button class="mt-6 px-6 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 transition-all">
+            Hire Us Now
+          </button>
+        </div>
+        <div class="p-6 bg-gray-50 rounded-lg shadow text-center">
+          <h3 class="text-xl font-semibold text-purple-900">Premium Package</h3>
+          <p class="mt-2 text-gray-700">
+            For high-end or multiple vehicle purchases and complex negotiations.
+          </p>
+          <p class="mt-4 text-2xl font-bold text-amber-500">$1,997 Flat Fee</p>
+          <ul class="mt-4 text-left text-gray-700 space-y-2">
+            <li>? All Standard benefits, plus extended dealer outreach</li>
+            <li>? Detailed price breakdowns, trade-in evaluation guidance</li>
+            <li>? Priority access to top-tier financing partners</li>
+          </ul>
+          <button class="mt-6 px-6 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 transition-all">
+            Get the Premium Advantage
+          </button>
+        </div>
+      </div>
+      <div class="text-center mt-10">
+        <button @click="navigateTo('guarantee')" 
+                class="px-8 py-4 bg-purple-700 text-white rounded-lg text-lg hover:bg-purple-800 transition-all">
+          See Our Iron-Clad Guarantee
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- CALCULATOR (RESOURCES) PAGE -->
+<div x-show="route === 'calculator'" x-transition class="py-12">
+  <section class="bg-white py-12">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl font-bold text-purple-900">Free Affordability & Payment Calculator</h2>
+      <p class="mt-4 text-lg text-gray-700">
+        Not ready to hire us? That?s okay. Use our free calculator to understand what you can afford and estimate your monthly payments before we even step into the ring for you.
+      </p>
+      <div class="mt-8 bg-gray-50 p-6 rounded shadow-lg">
+        <!-- Iframe or script for your Google App Script calculator could go here -->
+        <p class="text-gray-700 mb-4">Your calculator will appear below (replace this placeholder with your embed code):</p>
+        <div class="border border-gray-300 rounded p-4">
+          <em>Calculator Widget Placeholder</em>
+        </div>
+      </div>
+
+      <div class="text-center mt-10">
+        <button @click="navigateTo('faq')" 
+                class="px-8 py-4 bg-purple-700 text-white rounded-lg text-lg hover:bg-purple-800 transition-all">
+          Still Have Questions? Check the FAQ
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FAQ PAGE -->
+<div x-show="route === 'faq'" x-transition class="py-12">
+  <section class="bg-gray-50 py-12">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-bold text-purple-900 text-center">Frequently Asked Questions</h2>
+      <div class="mt-8 space-y-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold text-gray-900">How can you negotiate better than I can myself?</h3>
+          <p class="mt-2 text-gray-700">
+            With 30 years in the industry, we know dealer cost structures, manufacturer incentives, and how to pit offers against each other. We harness real competition, which most individual buyers can?t replicate.
+          </p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold text-gray-900">Will I really save money?</h3>
+          <p class="mt-2 text-gray-700">
+            Our clients routinely save thousands. Dealers know they?re up against tough competition when they deal with us. We pass those savings directly to you.
+          </p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold text-gray-900">Do you handle trade-ins or leases?</h3>
+          <p class="mt-2 text-gray-700">
+            Absolutely. We?ll guide you on how to leverage your trade-in and even negotiate lease terms to ensure you?re not leaving money on the table.
+          </p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold text-gray-900">What if I don?t like any of the deals?</h3>
+          <p class="mt-2 text-gray-700">
+            You?re never obligated to buy. We present the best offers. If none meet your standards, you can walk away, no questions asked.
+          </p>
+        </div>
+      </div>
+      <div class="text-center mt-8">
+        <button @click="navigateTo('guarantee')" 
+                class="px-8 py-4 bg-amber-500 text-white rounded-lg text-lg hover:bg-amber-600 transition-all">
+          View Our Guarantee
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- GUARANTEE PAGE -->
+<div x-show="route === 'guarantee'" x-transition class="py-12">
+  <section class="bg-white py-12">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl font-bold text-purple-900">Our Iron-Clad, No-Risk Guarantee</h2>
+      <p class="mt-4 text-lg text-gray-700">
+        We stand by our service. If we don?t save you at least twice our fee off the best dealer?s advertised price, we?ll not only refund your entire fee?we?ll add $500 to it for wasting your time. No lawyers. No fine print. Just results.
+      </p>
+      <button @click="navigateTo('pricing')" 
+              class="mt-6 px-8 py-4 bg-amber-500 text-white rounded-lg text-lg hover:bg-amber-600 transition-all">
+        Let?s Get Started, Risk-Free
+      </button>
+    </div>
+  </section>
+</div>
+
+<!-- Footer -->
+<footer class="py-8 bg-gray-800 text-white text-center">
+  <p>? 2024 Apex Negotiations. All rights reserved.</p>
+  <div class="mt-4">
+    <a href="#home" class="text-gray-400 hover:text-white mx-2">Privacy Policy</a>
+    <a href="#home" class="text-gray-400 hover:text-white mx-2">Terms of Service</a>
+    <a href="#home" class="text-gray-400 hover:text-white mx-2">Contact Us</a>
+  </div>
+</footer>
+
+</body>
+</html>
