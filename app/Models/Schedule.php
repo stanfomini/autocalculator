@@ -10,9 +10,8 @@ class Schedule extends Model
 {
     use HasFactory;
 
-    protected $table = 'schedules';  // Must match the migration
+    protected $table = 'schedules';
 
-    // Fillable columns for mass assignment
     protected $fillable = [
         'first_name',
         'last_name',
@@ -20,10 +19,9 @@ class Schedule extends Model
         'scheduled_at',
     ];
 
-    // If this record was created < 10 minutes ago, mark as "new"
     public function getIsNewAttribute(): bool
     {
-        return $this->created_at 
+        return $this->created_at
             && $this->created_at->gt(Carbon::now()->subMinutes(10));
     }
 }
