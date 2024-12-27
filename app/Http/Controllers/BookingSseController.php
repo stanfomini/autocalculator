@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Appointment;
+use App\Models\Booking;
 use Carbon\Carbon;
 
 /**
- * Streams Appointment records over SSE for real-time updates.
+ * SSE streaming of the ?bookings? table for real-time updates.
  */
 class BookingSseController extends Controller
 {
@@ -17,25 +17,27 @@ class BookingSseController extends Controller
         header('Cache-Control: no-cache');
         header('X-Accel-Buffering: no');
 
-        // We'll loop for ~30s to avoid infinite script
+        // We'll keep this open for ~30s in a loop
         $startTime = time();
         while (true) {
             if ((time() - $startTime) > 30) {
+                // Graceful close event
                 echo "event: close\n";
                 echo "data: done\n\n";
                 flush();
                 break;
             }
 
-            // Grab all appointments from the existing table
-            $appointments = Appointment::all()->map(function ($appt) {
-                $appt->is_new = $appt->created_at
-                    && $appt->created_at->gt(Carbon::now()->subMinutes(10));
-                return $appt;
+            // Load all bookings, mark ?is_new?
+            $bookings = Booking::all()->map(function ($b) {
+                $b->is_new = $b->created_at
+                    && $b->created_at->gt(Carbon::now()->subMinutes(10));
+                return $b;
             });
 
+            // SSE ?message? event
             echo "event: message\n";
-            echo "data: " . json_encode($appointments) . "\n\n";
+            echo "data: " . json_encode($bookings) . "\n\n";
             flush();
 
             sleep(3);
