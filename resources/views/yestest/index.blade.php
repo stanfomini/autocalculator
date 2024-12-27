@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data="yesTestApp()" x-init="init()">
 <head>
     <meta charset="UTF-8">
     <title>YesTest App at /yestest</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
-<body class="bg-gray-100 p-4" x-data="yesTestApp()">
+<body class="bg-gray-100 p-4">
     <div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
         <h1 class="text-2xl font-bold mb-4">YesTest Scheduling</h1>
         <div class="flex gap-3 mb-4">
@@ -157,6 +157,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content
                     },
                     body: JSON.stringify(this.form)
@@ -164,10 +165,13 @@
                 let data = await resp.json();
                 if (data.status === 'success') {
                     this.message = 'Appointment booked!';
+                    // Clear the form
                     this.form = { first_name: '', last_name: '', phone: '', scheduled_at: '' };
+                    // Switch to list tab so user can see it (SSE updates after ~3s)
                     this.tab = 'list';
                 } else {
-                    alert('Failed to book appointment.');
+                    alert('Failed to book appointment. Check console for errors.');
+                    console.error(data);
                 }
             },
             editItem(item) {
@@ -191,6 +195,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content
                     },
                     body: JSON.stringify(this.editForm)
@@ -200,7 +205,8 @@
                     this.editing = false;
                     this.editId = null;
                 } else {
-                    alert('Update failed.');
+                    alert('Update failed. Check console.');
+                    console.error(data);
                 }
             },
             async deleteItem(id) {
@@ -210,16 +216,19 @@
                     method: 'DELETE',
                     headers: {
                         'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content
                     },
                 });
                 let data = await resp.json();
                 if (data.status !== 'deleted') {
-                    alert('Delete failed.');
+                    alert('Delete failed. Check console.');
+                    console.error(data);
                 }
             },
             formatDate(dtStr) {
                 let d = new Date(dtStr);
+                if (isNaN(d)) return dtStr;
                 return d.toLocaleString();
             },
             init() {
