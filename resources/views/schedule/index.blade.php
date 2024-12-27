@@ -157,9 +157,35 @@
                     // Clear the form
                     this.form = { first_name: '', last_name: '', phone: '', scheduled_at: '' };
                     this.tab = 'list';
+                    // Fetch Schedules after booking so the list is updated
+                   this.fetchSchedules();
                 } else {
                     alert('Error saving appointment!');
                 }
+            },
+           async fetchSchedules(){
+               const resp = await fetch('/testing1/sse');
+               const reader = resp.body.getReader();
+               let text = "";
+               let jsonStr = "";
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    text += new TextDecoder().decode(value);
+                    if(text.includes('data:')){
+                        const parts = text.split("data:");
+                        jsonStr = parts[parts.length-1].trim();
+                        if(jsonStr){
+                            try{
+                                this.schedules = JSON.parse(jsonStr);
+                                text = "";
+                            } catch(e){
+                                console.error('Error parsing json string' , e);
+                            }
+                        }
+                    }
+
+                 }
             },
             editSchedule(item) {
                 this.editId = item.id;
@@ -169,6 +195,7 @@
                     first_name: item.first_name,
                     last_name: item.last_name,
                     phone: item.phone,
+                   // Convert date to proper input format.
                     scheduled_at: item.scheduled_at.slice(0,16),
                 };
             },
@@ -188,11 +215,12 @@
                 });
                 const data = await resp.json();
                 if (data.status === 'success') {
-                    this.editing = false;
-                    this.editId = null;
-                } else {
-                    alert('Error updating!');
-                }
+                     this.editing = false;
+                     this.editId = null;
+                     this.fetchSchedules(); // Update the list.
+                 } else {
+                     alert('Error updating!');
+                 }
             },
             async deleteSchedule(id) {
                 if (!confirm('Delete this schedule?')) {
@@ -209,17 +237,22 @@
                 if (data.status !== 'deleted') {
                     alert('Error deleting!');
                 }
+                  this.fetchSchedules(); // Update the list.
+
             },
-            formatDate(dtStr) {
+             formatDate(dtStr) {
                 const d = new Date(dtStr);
                 return d.toLocaleString();
             },
             init() {
                 // SSE to listen for new records
-                const source = new EventSource('/testing1/sse');
+                // initial load.
+                this.fetchSchedules();
+
+               const source = new EventSource('/testing1/sse');
                 source.onmessage = (evt) => {
                     try {
-                        this.schedules = JSON.parse(evt.data);
+                         this.schedules = JSON.parse(evt.data);
                     } catch(e) {
                         console.error('SSE parse error:', e);
                     }
