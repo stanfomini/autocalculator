@@ -6,13 +6,12 @@ use App\Models\Schedule;
 use Illuminate\Http\Request;
 
 /**
- * Resourceful controller for /testing1, using the schedules table.
+ * Resourceful controller for the ?schedules? table at /testing1.
  */
 class ScheduleController extends Controller
 {
     public function index()
     {
-        // Return the SPA Blade
         return view('schedule.index');
     }
 
@@ -31,7 +30,13 @@ class ScheduleController extends Controller
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-        $sched = Schedule::create($request->all());
+        // Create new schedule record
+        $sched = Schedule::create($request->only([
+            'first_name',
+            'last_name',
+            'phone',
+            'scheduled_at',
+        ]));
 
         return response()->json([
             'status' => 'success',
@@ -39,15 +44,15 @@ class ScheduleController extends Controller
         ]);
     }
 
+    // Non-SPA fallback show
     public function show(Schedule $testing1)
     {
-        // Non-SPA fallback
         return view('schedule.show', ['sched' => $testing1]);
     }
 
+    // Non-SPA fallback edit
     public function edit(Schedule $testing1)
     {
-        // Non-SPA fallback
         return view('schedule.edit', ['sched' => $testing1]);
     }
 
@@ -60,7 +65,12 @@ class ScheduleController extends Controller
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-       $testing1->update($request->all());
+        $testing1->update($request->only([
+            'first_name',
+            'last_name',
+            'phone',
+            'scheduled_at',
+        ]));
 
         return response()->json([
             'status' => 'success',
