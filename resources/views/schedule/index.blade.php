@@ -42,7 +42,7 @@
                            class="border p-2 w-full" required>
                 </div>
                 <div>
-                    <label class="block font-semibold">Date & Time</label>
+                    <label class="block font-semibold">Date &amp; Time</label>
                     <input type="datetime-local" x-model="form.scheduled_at"
                            class="border p-2 w-full" required>
                 </div>
@@ -110,7 +110,7 @@
                                        class="border p-2 w-full" required>
                             </div>
                             <div>
-                                <label>Date & Time</label>
+                                <label>Date &amp; Time</label>
                                 <input type="datetime-local" x-model="editForm.scheduled_at"
                                        class="border p-2 w-full" required>
                             </div>
@@ -166,35 +166,9 @@
                     this.message = 'Successfully booked!';
                     this.form = { first_name: '', last_name: '', phone: '', scheduled_at: '' };
                     this.tab = 'list';
-                      this.fetchSchedules();
                 } else {
                     alert('Failed to book appointment.');
                 }
-            },
-            async fetchSchedules(){
-                const resp = await fetch('/testing1/sse');
-                 const reader = resp.body.getReader();
-                   let text = "";
-                       let jsonStr = "";
-                        while (true) {
-                           const { done, value } = await reader.read();
-                           if (done) break;
-                           text += new TextDecoder().decode(value);
-                           if(text.includes('data:')){
-                               const parts = text.split("data:");
-                               jsonStr = parts[parts.length-1].trim();
-                               if(jsonStr){
-                                   try{
-                                       this.schedules = JSON.parse(jsonStr);
-                                       text = "";
-                                   } catch(e){
-                                       console.error('Error parsing json string' , e);
-                                   }
-                               }
-                           }
-
-                        }
-
             },
             editSchedule(item) {
                 this.editing = true;
@@ -224,12 +198,11 @@
                 if (data.status === 'success') {
                     this.editing = false;
                     this.editId = null;
-                  this.fetchSchedules();
                 } else {
                     alert('Update failed.');
                 }
             },
-             async deleteSchedule(id) {
+            async deleteSchedule(id) {
                 if (!confirm('Are you sure you want to delete this?')) return;
                 const url = `/testing1/${id}`;
                 const resp = await fetch(url, {
@@ -242,25 +215,22 @@
                 if (data.status !== 'deleted') {
                     alert('Delete failed.');
                 }
-               this.fetchSchedules();
             },
             formatDate(dtStr) {
                 let d = new Date(dtStr);
                 return d.toLocaleString();
             },
             init() {
-
-                this.fetchSchedules();
                 // SSE
                 const source = new EventSource('/testing1/sse');
                 source.onmessage = (e) => {
-                   try {
+                    try {
                         this.schedules = JSON.parse(e.data);
                     } catch (err) {
                         console.error('SSE parse error:', err);
                     }
                 };
-                 source.onerror = (err) => {
+                source.onerror = (err) => {
                     console.error('SSE error:', err);
                 };
             },
