@@ -139,13 +139,12 @@
                            this.message = 'Successfully saved!';
                            this.form = { title: '', content:'' };
                            this.tab = 'list';
-                           // Fetch data after create.
-                         this.fetchBlogs();
+                            this.fetchBlogs();
                        } else {
                            alert('Failed to save.');
                        }
                   },
-                 async fetchBlogs(){
+                   async fetchBlogs(){
                      const resp = await fetch('/blog/sse');
                        const reader = resp.body.getReader();
                        let text = "";
@@ -168,7 +167,7 @@
                            }
 
                         }
-                 },
+                  },
                  editPost(item) {
                        this.editing = true;
                        this.editId = item.id;
@@ -195,7 +194,7 @@
                         if (data.status === 'success') {
                            this.editing = false;
                             this.editId = null;
-                         this.fetchBlogs(); // Update the list
+                            this.fetchBlogs(); // Update the list.
                        } else {
                           alert('Update failed.');
                        }
@@ -213,16 +212,14 @@
                        if (data.status !== 'deleted') {
                            alert('Delete failed.');
                        }
-                    this.fetchBlogs();
+                     this.fetchBlogs(); // Update the list.
                    },
                  formatDate(dtStr) {
                     let d = new Date(dtStr);
                     return d.toLocaleString();
                   },
                 init() {
-
-                  this.fetchBlogs();
-
+                       this.fetchBlogs();
                     const source = new EventSource('/blog/sse');
                     source.onmessage = (e) => {
                         try {
