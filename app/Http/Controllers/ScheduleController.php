@@ -31,12 +31,7 @@ class ScheduleController extends Controller
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-        $sched = Schedule::create($request->only([
-            'first_name',
-            'last_name',
-            'phone',
-            'scheduled_at',
-        ]));
+        $sched = Schedule::create($request->all());
 
         return response()->json([
             'status' => 'success',
@@ -65,12 +60,7 @@ class ScheduleController extends Controller
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-        $testing1->update($request->only([
-            'first_name',
-            'last_name',
-            'phone',
-            'scheduled_at',
-        ]));
+       $testing1->update($request->all());
 
         return response()->json([
             'status' => 'success',
