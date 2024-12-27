@@ -132,7 +132,7 @@
     }
     </script>
 
-    <!-- Alpine.js (Ensure you have @vite or a separate script that loads Alpine) -->
+    
     <script>
     document.addEventListener('alpine:init', () => {
       // Nothing special here, just ensuring Alpine is loaded
