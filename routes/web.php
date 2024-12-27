@@ -11,7 +11,7 @@ use App\Http\Controllers\ScheduleSseController;
 | Web Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register web routes for your application.
+| Place your standard Laravel routes here.
 |
 */
 
@@ -19,12 +19,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Existing test routes
+// Existing routes
 Route::resource('/test', TestItemController::class)->only(['index', 'store']);
 Route::resource('/hello', HelloItemController::class)->only(['index', 'store']);
 
-// New resource route for scheduling, at /testing1
-Route::resource('/testing1', ScheduleController::class);
+// The new resource route for scheduling is /testing1
+// "ScheduleController" uses param binding => {testing1}
+Route::resource('/testing1', ScheduleController::class)
+    ->parameters(['testing1' => 'testing1']);
 
-// SSE route for real-time updates
+// SSE endpoint
 Route::get('/testing1/sse', [ScheduleSseController::class, 'stream'])->name('testing1.sse');
