@@ -3,8 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TestItemController;
 use App\Http\Controllers\HelloItemController;
-use App\Http\Controllers\BookingController;
-use App\Http\Controllers\BookingSseController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\ScheduleSseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,16 +15,16 @@ use App\Http\Controllers\BookingSseController;
 |
 */
 
-// Existing routes
 Route::get('/', function () {
     return view('welcome');
 });
 
+// Existing test routes
 Route::resource('/test', TestItemController::class)->only(['index', 'store']);
 Route::resource('/hello', HelloItemController::class)->only(['index', 'store']);
 
-// This is the new Bookings resource route
-Route::resource('/booking', BookingController::class);
+// New resource route for scheduling, at /testing1
+Route::resource('/testing1', ScheduleController::class);
 
-// SSE route for real-time Bookings
-Route::get('/booking/sse', [BookingSseController::class, 'stream'])->name('booking.sse');
+// SSE route for real-time updates
+Route::get('/testing1/sse', [ScheduleSseController::class, 'stream'])->name('testing1.sse');
