@@ -3,8 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TestItemController;
 use App\Http\Controllers\HelloItemController;
-use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\AppointmentSseController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\BookingSseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,9 +32,8 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 });
 
-// Resourceful routes for appointments
-// This gives us index, create, store, show, edit, update, destroy
-Route::resource('/schedule', AppointmentController::class);
+// Resourceful routes for the new booking feature
+Route::resource('/booking', BookingController::class);
 
-// SSE route for real-time appointment listing
-Route::get('/appointments/sse', [AppointmentSseController::class, 'stream'])->name('appointments.sse');
+// SSE route for real-time listing of bookings
+Route::get('/booking/sse', [BookingSseController::class, 'stream'])->name('booking.sse');
