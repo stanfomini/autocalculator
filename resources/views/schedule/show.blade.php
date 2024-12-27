@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Show Schedule</title>
 </head>
 <body>
-    <h1>Schedule Details (Non-SPA)</h1>
+    <h1>Schedule Record (Non-SPA Fallback)</h1>
     <p>ID: {{ $sched->id }}</p>
     <p>Name: {{ $sched->first_name }} {{ $sched->last_name }}</p>
     <p>Phone: {{ $sched->phone }}</p>
