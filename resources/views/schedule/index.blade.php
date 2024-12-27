@@ -157,6 +157,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
                     body: JSON.stringify(this.form),
@@ -190,6 +191,7 @@
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
                     body: JSON.stringify(this.editForm),
@@ -208,6 +210,7 @@
                 const resp = await fetch(url, {
                     method: 'DELETE',
                     headers: {
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
                 });
