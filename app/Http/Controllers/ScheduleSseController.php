@@ -9,9 +9,10 @@ class ScheduleSseController extends Controller
 {
     public function stream()
     {
+        // SSE headers
         header('Content-Type: text/event-stream');
         header('Cache-Control: no-cache');
-        header('X-Accel-Buffering: no');
+        header('X-Accel-Buffering: no'); // For Nginx
 
         $startTime = time();
         while (true) {
@@ -22,14 +23,15 @@ class ScheduleSseController extends Controller
                 break;
             }
 
-            $all = Schedule::orderBy('id','desc')->get()->map(function ($row) {
-                $row->is_new = $row->created_at
-                    && $row->created_at->gt(Carbon::now()->subMinutes(10));
-                return $row;
+            // Retrieve newest first
+            $records = Schedule::orderBy('id','desc')->get()->map(function($item) {
+                $item->is_new = $item->created_at &&
+                                $item->created_at->gt(Carbon::now()->subMinutes(10));
+                return $item;
             });
 
             echo "event: message\n";
-            echo "data: " . json_encode($all) . "\n\n";
+            echo "data: " . json_encode($records) . "\n\n";
             flush();
 
             sleep(3);
