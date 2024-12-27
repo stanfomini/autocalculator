@@ -17,9 +17,10 @@ class Appointment extends Model
         'appointment_datetime',
     ];
 
-    // Example helper to check if appointment was created < 10 min ago
-    public function getIsNewAttribute()
+    // For green indicator if created < 10 minutes ago
+    public function getIsNewAttribute(): bool
     {
-        return $this->created_at && $this->created_at->gt(Carbon::now()->subMinutes(10));
+        return $this->created_at
+            && $this->created_at->gt(Carbon::now()->subMinutes(10));
     }
 }
