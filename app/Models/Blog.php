@@ -17,7 +17,7 @@ class Blog extends Model
         'content',
     ];
 
-      public function getIsNewAttribute(): bool
+    public function getIsNewAttribute(): bool
     {
         return $this->created_at
             && $this->created_at->gt(Carbon::now()->subMinutes(10));
