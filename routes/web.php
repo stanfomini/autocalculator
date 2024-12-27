@@ -5,6 +5,8 @@ use App\Http\Controllers\TestItemController;
 use App\Http\Controllers\HelloItemController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ScheduleSseController;
+use App\Http\Controllers\BlogController;
+use App\Http\Controllers\BlogSseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,3 +27,8 @@ Route::resource('/testing1', ScheduleController::class)
 
 // SSE route for real-time
 Route::get('/testing1/sse', [ScheduleSseController::class, 'stream'])->name('testing1.sse');
+
+// Blog Resource
+Route::resource('/blog', BlogController::class);
+// Blog SSE route
+Route::get('/blog/sse', [BlogSseController::class, 'stream'])->name('blog.sse');
