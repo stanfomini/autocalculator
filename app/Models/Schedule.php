@@ -21,7 +21,7 @@ class Schedule extends Model
 
     public function getIsNewAttribute(): bool
     {
-        return $this->created_at
-            && $this->created_at->gt(Carbon::now()->subMinutes(10));
+        return $this->created_at &&
+               $this->created_at->gt(Carbon::now()->subMinutes(10));
     }
 }
