@@ -9,35 +9,27 @@ class ScheduleSseController extends Controller
 {
     public function stream()
     {
-        // SSE headers
         header('Content-Type: text/event-stream');
         header('Cache-Control: no-cache');
-        header('X-Accel-Buffering: no'); // For Nginx
+        header('X-Accel-Buffering: no');
 
-        $startTime = time();
+        // Stream indefinitely until client disconnects
         while (true) {
-            if ((time() - $startTime) > 30) {
-                echo "event: close\n";
-                echo "data: done\n\n";
-                flush();
-                break;
-            }
-
-            // Retrieve newest first
-            $records = Schedule::orderBy('id','desc')->get()->map(function($item) {
-                $item->is_new = $item->created_at &&
-                                $item->created_at->gt(Carbon::now()->subMinutes(10));
-                return $item;
-            });
-
-            echo "event: message\n";
-            echo "data: " . json_encode($records) . "\n\n";
-            flush();
-
-            sleep(3);
             if (connection_aborted()) {
                 break;
             }
+
+            $all = Schedule::orderBy('id','desc')->get()->map(function ($row) {
+                $row->is_new = $row->created_at
+                    && $row->created_at->gt(Carbon::now()->subMinutes(10));
+                return $row;
+            });
+
+            echo "event: message\n";
+            echo "data: " . json_encode($all) . "\n\n";
+            flush();
+
+            sleep(3);
         }
     }
 }
