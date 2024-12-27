@@ -5,8 +5,8 @@
     <title>Create Booking</title>
 </head>
 <body>
-    <h1>Create Appointment (non-SPA fallback)</h1>
-    <form action="{{ route('booking.store') }}" method="POST">
+    <h1>Create Booking (Non-SPA Fallback)</h1>
+    <form method="POST" action="{{ route('booking.store') }}">
         @csrf
         <p>
             <label>First Name</label>
@@ -21,8 +21,8 @@
             <input type="text" name="phone" required>
         </p>
         <p>
-            <label>Appointment Date & Time</label>
-            <input type="datetime-local" name="appointment_datetime" required>
+            <label>Date &amp; Time</label>
+            <input type="datetime-local" name="booking_datetime" required>
         </p>
         <button type="submit">Save</button>
     </form>
