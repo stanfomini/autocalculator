@@ -2,91 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Appointment Scheduler</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <title>Scheduler (SPA)</title>
+    @vite(['resources/css/app.css','resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
-<body class="bg-gray-100 p-4" x-data="appointmentApp()">
+<body class="bg-gray-100 p-4" x-data="schedulerApp()">
+    <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow space-y-6">
+        <h1 class="text-2xl font-bold">Schedule an Appointment</h1>
 
-    <div class="max-w-3xl mx-auto bg-white p-6 rounded-md shadow">
-        <h1 class="text-2xl font-bold mb-4">Appointment Scheduler</h1>
-
-        <div class="flex gap-4 mb-4">
-            <button class="px-4 py-2 rounded bg-blue-500 text-white"
-                :class="{ 'bg-blue-700': tab === 'form' }"
-                @click="tab = 'form'">
-                Schedule Appointment
-            </button>
-            <button class="px-4 py-2 rounded bg-blue-500 text-white"
-                :class="{ 'bg-blue-700': tab === 'list' }"
-                @click="tab = 'list'">
-                Appointment List
-            </button>
+        <div class="flex gap-4">
+            <button class="px-4 py-2 bg-blue-500 text-white rounded"
+                    :class="{ 'bg-blue-700': tab === 'form' }"
+                    @click="tab = 'form'">Book Now</button>
+            <button class="px-4 py-2 bg-blue-500 text-white rounded"
+                    :class="{ 'bg-blue-700': tab === 'list' }"
+                    @click="tab = 'list'">View Appointments</button>
         </div>
 
-        <!-- TAB 1: Form -->
+        <!-- Booking Form -->
         <div x-show="tab === 'form'" class="space-y-4">
-            <form @submit.prevent="createAppointment" class="space-y-4">
+            <form @submit.prevent="createSchedule" class="space-y-4">
                 <div>
                     <label class="block font-semibold">First Name</label>
-                    <input type="text" x-model="form.first_name"
-                           class="border p-2 w-full" required>
+                    <input type="text" x-model="form.first_name" class="border p-2 w-full" required>
                 </div>
                 <div>
                     <label class="block font-semibold">Last Name</label>
-                    <input type="text" x-model="form.last_name"
-                           class="border p-2 w-full" required>
+                    <input type="text" x-model="form.last_name" class="border p-2 w-full" required>
                 </div>
                 <div>
                     <label class="block font-semibold">Phone</label>
-                    <input type="text" x-model="form.phone"
-                           class="border p-2 w-full" required>
+                    <input type="text" x-model="form.phone" class="border p-2 w-full" required>
                 </div>
                 <div>
-                    <label class="block font-semibold">Appointment Date &amp; Time</label>
-                    <input type="datetime-local" x-model="form.appointment_datetime"
-                           class="border p-2 w-full" required>
+                    <label class="block font-semibold">Date/Time</label>
+                    <input type="datetime-local" x-model="form.scheduled_at" class="border p-2 w-full" required>
                 </div>
-                <button type="submit"
-                        class="px-4 py-2 bg-green-500 text-white rounded">
-                    Create Appointment
+                <button class="px-4 py-2 bg-green-500 text-white rounded" type="submit">
+                    Book Now
                 </button>
             </form>
+
             <template x-if="message">
                 <div class="text-green-600 font-semibold" x-text="message"></div>
             </template>
         </div>
 
-        <!-- TAB 2: List -->
+        <!-- Appointment List -->
         <div x-show="tab === 'list'">
-            <h2 class="text-xl font-bold mb-2">Current Appointments</h2>
-            <p class="text-sm text-gray-500 mb-4">(Real-time updates via SSE; refreshes every 3s in this demo)</p>
-
+            <h2 class="text-xl font-bold mb-3">All Appointments</h2>
             <ul class="space-y-2">
-                <template x-for="appointment in appointments" :key="appointment.id">
+                <template x-for="item in schedules" :key="item.id">
                     <li class="bg-gray-50 p-3 rounded flex items-center justify-between">
                         <div>
-                            <span class="font-semibold"
-                                  x-text="appointment.first_name + ' ' + appointment.last_name"></span>
-                            <br>
-                            <span class="text-sm text-gray-500"
-                                  x-text="appointment.phone"></span>
-                            <br>
-                            <span class="text-sm font-medium"
-                                  x-text="formatDate(appointment.appointment_datetime)"></span>
+                            <span class="font-semibold" x-text="item.first_name + ' ' + item.last_name"></span><br>
+                            <span class="text-sm text-gray-600" x-text="item.phone"></span><br>
+                            <span class="text-sm font-medium" x-text="formatDate(item.scheduled_at)"></span>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-3">
                             <!-- If new, show green circle -->
-                            <template x-if="appointment.is_new">
+                            <template x-if="item.is_new">
                                 <span class="inline-block w-3 h-3 rounded-full bg-green-500"></span>
                             </template>
-                            <!-- Buttons for edit/delete -->
-                            <button class="text-sm text-blue-700 underline"
-                                    @click="editAppointment(appointment)">
+                            <button class="text-blue-600 text-sm underline" @click="editSchedule(item)">
                                 Edit
                             </button>
-                            <button class="text-sm text-red-700 underline"
-                                    @click="deleteAppointment(appointment.id)">
+                            <button class="text-red-600 text-sm underline" @click="deleteSchedule(item.id)">
                                 Delete
                             </button>
                         </div>
@@ -94,40 +75,32 @@
                 </template>
             </ul>
 
-            <!-- Optional Edit Modal -->
+            <!-- Edit Modal -->
             <template x-if="editing">
                 <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div class="bg-white p-6 rounded space-y-4 w-96">
-                        <h3 class="text-lg font-bold">Edit Appointment</h3>
-                        <form @submit.prevent="updateAppointment" class="space-y-3">
+                    <div class="bg-white p-5 rounded w-96 space-y-4">
+                        <h3 class="text-lg font-bold">Edit Schedule</h3>
+                        <form @submit.prevent="updateSchedule" class="space-y-3">
                             <div>
                                 <label class="block font-semibold">First Name</label>
-                                <input type="text" x-model="editForm.first_name"
-                                       class="border p-2 w-full" required>
+                                <input type="text" x-model="editForm.first_name" class="border p-2 w-full" required>
                             </div>
                             <div>
                                 <label class="block font-semibold">Last Name</label>
-                                <input type="text" x-model="editForm.last_name"
-                                       class="border p-2 w-full" required>
+                                <input type="text" x-model="editForm.last_name" class="border p-2 w-full" required>
                             </div>
                             <div>
                                 <label class="block font-semibold">Phone</label>
-                                <input type="text" x-model="editForm.phone"
-                                       class="border p-2 w-full" required>
+                                <input type="text" x-model="editForm.phone" class="border p-2 w-full" required>
                             </div>
                             <div>
-                                <label class="block font-semibold">Appointment Date &amp; Time</label>
-                                <input type="datetime-local" x-model="editForm.appointment_datetime"
-                                       class="border p-2 w-full" required>
+                                <label class="block font-semibold">Date/Time</label>
+                                <input type="datetime-local" x-model="editForm.scheduled_at" class="border p-2 w-full" required>
                             </div>
                             <div class="flex justify-end gap-2">
-                                <button type="button"
-                                        class="px-4 py-2 bg-gray-400 text-white rounded"
-                                        @click="closeEdit">
-                                    Cancel
-                                </button>
-                                <button type="submit"
-                                        class="px-4 py-2 bg-blue-600 text-white rounded">
+                                <button type="button" class="px-4 py-2 bg-gray-500 text-white rounded"
+                                        @click="closeEdit">Cancel</button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">
                                     Save
                                 </button>
                             </div>
@@ -139,68 +112,64 @@
     </div>
 
     <script>
-    function appointmentApp() {
+    function schedulerApp() {
         return {
             tab: 'form',
             message: '',
-            // List of appointments from SSE
-            appointments: [],
-            // Create form data
+            // SSE data
+            schedules: [],
             form: {
                 first_name: '',
                 last_name: '',
                 phone: '',
-                appointment_datetime: '',
+                scheduled_at: '',
             },
-            // Editing mode
+            // Editing
             editing: false,
             editId: null,
             editForm: {
                 first_name: '',
                 last_name: '',
                 phone: '',
-                appointment_datetime: '',
+                scheduled_at: '',
             },
-            async createAppointment() {
+            async createSchedule() {
                 this.message = '';
-                const resp = await fetch('/schedule', {
+                const resp = await fetch('/testing1', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content,
                     },
                     body: JSON.stringify(this.form),
                 });
                 const data = await resp.json();
                 if (data.status === 'success') {
-                    this.message = 'Appointment created successfully!';
-                    // Reset form
-                    this.form = {
-                        first_name: '',
-                        last_name: '',
-                        phone: '',
-                        appointment_datetime: '',
-                    };
-                    // Switch to list tab
+                    this.message = 'Appointment saved successfully!';
+                    this.form = { first_name: '', last_name: '', phone: '', scheduled_at: '' };
                     this.tab = 'list';
                 }
             },
-            editAppointment(appointment) {
+            editSchedule(item) {
+                this.editId = item.id;
                 this.editing = true;
-                this.editId = appointment.id;
                 this.editForm = {
-                    first_name: appointment.first_name,
-                    last_name: appointment.last_name,
-                    phone: appointment.phone,
-                    appointment_datetime: appointment.appointment_datetime?.slice(0,16), 
+                    first_name: item.first_name,
+                    last_name: item.last_name,
+                    phone: item.phone,
+                    scheduled_at: item.scheduled_at.slice(0,16),
                 };
             },
-            async updateAppointment() {
-                const resp = await fetch('/schedule/' + this.editId, {
+            closeEdit() {
+                this.editing = false;
+                this.editId = null;
+            },
+            async updateSchedule() {
+                const resp = await fetch(`/testing1/${this.editId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content,
                     },
                     body: JSON.stringify(this.editForm),
                 });
@@ -210,42 +179,37 @@
                     this.editId = null;
                 }
             },
-            async deleteAppointment(id) {
-                if (!confirm('Are you sure you want to delete this appointment?')) {
+            async deleteSchedule(id) {
+                if (!confirm('Are you sure you want to delete this?')) {
                     return;
                 }
-                const resp = await fetch('/schedule/' + id, {
+                const resp = await fetch(`/testing1/${id}`, {
                     method: 'DELETE',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content,
                     },
                 });
-                const data = await resp.json();
-                if (data.status === 'deleted') {
-                    // It will be removed on next SSE refresh
+                const delRes = await resp.json();
+                if (delRes.status === 'deleted') {
+                    // SSE update will remove it
                 }
-            },
-            closeEdit() {
-                this.editing = false;
-                this.editId = null;
             },
             formatDate(dtStr) {
                 let d = new Date(dtStr);
                 return d.toLocaleString();
             },
             init() {
-                // SSE connection for real-time listing
-                const source = new EventSource('/appointments/sse');
+                // SSE to /testing1/sse
+                const source = new EventSource('/testing1/sse');
                 source.onmessage = (evt) => {
-                    // SSE sends a JSON array of appointments
                     try {
-                        this.appointments = JSON.parse(evt.data);
+                        this.schedules = JSON.parse(evt.data);
                     } catch (e) {
-                        console.error('Invalid SSE data', e);
+                        console.error('SSE parse error', e);
                     }
                 };
                 source.onerror = (err) => {
-                    console.error('SSE Error:', err);
+                    console.error('SSE error', err);
                 };
             },
         };
