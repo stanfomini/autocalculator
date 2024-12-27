@@ -30,6 +30,7 @@ class ScheduleSseController extends Controller
             }
 
             // Load all schedules, add "is_new" if created < 10 min
+            // Fetch the records in descending order of id so new records are pushed to front.
             $all = Schedule::orderBy('id', 'desc')->get()->map(function($r) {
                 $r->is_new = $r->created_at && $r->created_at->gt(Carbon::now()->subMinutes(10));
                 return $r;
@@ -41,6 +42,7 @@ class ScheduleSseController extends Controller
 
             sleep(3);
 
+             // check for connection abort.
             if (connection_aborted()) {
                 break;
             }
