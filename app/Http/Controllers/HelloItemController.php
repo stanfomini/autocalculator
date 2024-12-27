@@ -2,26 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HelloItem;
 use Illuminate\Http\Request;
 
 class HelloItemController extends Controller
 {
-    // Show the form to submit a new "hello" message
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        return view('hello.index');
+        return 'Hello world';
     }
 
-    // Store a new hello message and redirect to /test
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-        $request->validate([            'message' => 'required|string|max:255',        ]);
+        //
+    }
 
-        HelloItem::create([
-            'message' => $request->message,
-        ]);
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
 
-        return redirect()->route('test.index');
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
     }
 }
