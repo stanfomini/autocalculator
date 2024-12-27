@@ -5,8 +5,8 @@
     <title>Edit Booking</title>
 </head>
 <body>
-    <h1>Edit Appointment (non-SPA fallback)</h1>
-    <form action="{{ route('booking.update', $booking->id) }}" method="POST">
+    <h1>Edit Booking (Non-SPA Fallback)</h1>
+    <form method="POST" action="{{ route('booking.update', $booking->id) }}">
         @csrf
         @method('PUT')
         <p>
@@ -22,12 +22,12 @@
             <input type="text" name="phone" value="{{ $booking->phone }}" required>
         </p>
         <p>
-            <label>Appointment Date & Time</label>
-            <input type="datetime-local" name="appointment_datetime"
-                   value="{{ \Carbon\Carbon::parse($booking->appointment_datetime)->format('Y-m-d\TH:i') }}"
+            <label>Date &amp; Time</label>
+            <input type="datetime-local" name="booking_datetime"
+                   value="{{ \Carbon\Carbon::parse($booking->booking_datetime)->format('Y-m-d\TH:i') }}"
                    required>
         </p>
-        <button type="submit">Update Appointment</button>
+        <button type="submit">Update</button>
     </form>
 </body>
 </html>
