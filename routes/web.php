@@ -15,25 +15,16 @@ use App\Http\Controllers\BookingSseController;
 |
 */
 
-// Existing route definitions...
-
+// Existing routes
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Existing route for test
 Route::resource('/test', TestItemController::class)->only(['index', 'store']);
-
-// New route for /hello
 Route::resource('/hello', HelloItemController::class)->only(['index', 'store']);
 
-// Dashboard placeholder
-Route::get('/dashboard', function () {
-    return view('dashboard');
-});
-
-// Resourceful routes for the new booking feature
+// This is the new Bookings resource route
 Route::resource('/booking', BookingController::class);
 
-// SSE route for real-time listing of bookings
+// SSE route for real-time Bookings
 Route::get('/booking/sse', [BookingSseController::class, 'stream'])->name('booking.sse');
