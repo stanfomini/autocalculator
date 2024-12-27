@@ -6,12 +6,13 @@ use App\Models\Schedule;
 use Illuminate\Http\Request;
 
 /**
- * Resourceful controller for the ?schedules? table at /testing1.
+ * Resourceful controller for /testing1, using the schedules table.
  */
 class ScheduleController extends Controller
 {
     public function index()
     {
+        // Return the SPA Blade
         return view('schedule.index');
     }
 
@@ -21,22 +22,17 @@ class ScheduleController extends Controller
         return view('schedule.create');
     }
 
-    public function store(Request $request)
+     public function store(Request $request)
     {
-        $request->validate([
+       $request->validate([
             'first_name'   => 'required|string|max:100',
             'last_name'    => 'required|string|max:100',
             'phone'        => 'required|string|max:30',
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-        // Create new schedule record
-        $sched = Schedule::create($request->only([
-            'first_name',
-            'last_name',
-            'phone',
-            'scheduled_at',
-        ]));
+        $sched = Schedule::create($request->all());
+
 
         return response()->json([
             'status' => 'success',
@@ -44,39 +40,35 @@ class ScheduleController extends Controller
         ]);
     }
 
-    // Non-SPA fallback show
     public function show(Schedule $testing1)
     {
+        // Non-SPA fallback
         return view('schedule.show', ['sched' => $testing1]);
     }
 
-    // Non-SPA fallback edit
     public function edit(Schedule $testing1)
     {
+        // Non-SPA fallback
         return view('schedule.edit', ['sched' => $testing1]);
     }
 
     public function update(Request $request, Schedule $testing1)
     {
-        $request->validate([
+      $request->validate([
             'first_name'   => 'required|string|max:100',
             'last_name'    => 'required|string|max:100',
             'phone'        => 'required|string|max:30',
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-        $testing1->update($request->only([
-            'first_name',
-            'last_name',
-            'phone',
-            'scheduled_at',
-        ]));
+        $testing1->update($request->all());
 
         return response()->json([
             'status' => 'success',
             'record' => $testing1->fresh(),
         ]);
     }
+
 
     public function destroy(Schedule $testing1)
     {
