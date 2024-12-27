@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Appointment Scheduler</title>
-    @vite('resources/css/app.css', 'resources/js/app.js')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-100 p-4" x-data="appointmentApp()">
 
