@@ -3,10 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\YesTestController;
 use App\Http\Controllers\YesTestSseController;
-
-Route::get('/', function () {
-    return view('welcome');
-});
+// If you still want the schedule-based resource, you can keep it or remove it.
+// We'll assume you're focusing on /yestest now.
 
 // Real-time scheduling at /yestest
 Route::resource('/yestest', YesTestController::class)
