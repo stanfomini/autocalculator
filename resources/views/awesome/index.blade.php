@@ -2,6 +2,8 @@
 <html lang="en" x-data="awesomeCalcApp()" x-init="init()">
 <head>
     <meta charset="UTF-8">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <title>Awesome Calculator at /awesome</title>
     @vite(['resources/css/app.css','resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
