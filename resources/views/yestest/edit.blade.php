@@ -5,7 +5,7 @@
     <title>Edit (Non-SPA Fallback)</title>
 </head>
 <body>
-    <h1>Edit Appointment</h1>
+    <h1>Edit Appointment (Fallback)</h1>
     <form action="/yestest/{{ $record->id }}" method="POST">
         @csrf
         @method('PUT')
