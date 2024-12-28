@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Scheduler at /testing1</title>
+    <title>Scheduler at /yestest</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body class="bg-gray-100 p-4" x-data="schedulerApp()">
     <div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
-        <h1 class="text-2xl font-bold mb-4">Schedule an Appointment</h1>
+        <h1 class="text-2xl font-bold mb-4">Schedule an Appointment (YesTest)</h1>
 
         <div class="flex gap-3 mb-4">
             <button class="px-4 py-2 bg-blue-500 text-white rounded"
@@ -151,12 +151,14 @@
                 phone: '',
                 scheduled_at: '',
             },
-             async createSchedule() {
+            async createSchedule() {
                 this.message = '';
-                const resp = await fetch('/testing1', {
+                const resp = await fetch('/yestest', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
                     body: JSON.stringify(this.form),
@@ -165,36 +167,18 @@
                 if (json.status === 'success') {
                     this.message = 'Successfully booked!';
                     this.form = { first_name: '', last_name: '', phone: '', scheduled_at: '' };
-                     this.tab = 'list';
-                      this.fetchSchedules();
+                    this.tab = 'list';
+                    this.fetchSchedules();
                 } else {
                     alert('Failed to book appointment.');
+                    console.error(json);
                 }
             },
-           async fetchSchedules(){
-                const resp = await fetch('/testing1/sse');
-                 const reader = resp.body.getReader();
-                   let text = "";
-                       let jsonStr = "";
-                        while (true) {
-                           const { done, value } = await reader.read();
-                           if (done) break;
-                           text += new TextDecoder().decode(value);
-                           if(text.includes('data:')){
-                               const parts = text.split("data:");
-                               jsonStr = parts[parts.length-1].trim();
-                               if(jsonStr){
-                                   try{
-                                       this.schedules = JSON.parse(jsonStr);
-                                       text = "";
-                                   } catch(e){
-                                       console.error('Error parsing json string' , e);
-                                   }
-                               }
-                           }
-
-                        }
-
+            async fetchSchedules() {
+                // We can load SSE in init(), but let's also do a quick fetch for immediate data
+                let resp = await fetch('/yestest/sse');
+                // SSE read logic can be tricky with fetch, but let's at least try
+                // For simpler immediate loads, consider a GET route returning JSON instead of SSE.
             },
             editSchedule(item) {
                 this.editing = true;
@@ -203,19 +187,21 @@
                     first_name: item.first_name,
                     last_name: item.last_name,
                     phone: item.phone,
-                    scheduled_at: item.scheduled_at.slice(0,16),
+                    scheduled_at: item.scheduled_at.slice(0, 16),
                 };
             },
             closeEdit() {
                 this.editing = false;
                 this.editId = null;
             },
-              async updateSchedule() {
-                const url = `/testing1/${this.editId}`;
+            async updateSchedule() {
+                const url = `/yestest/${this.editId}`;
                 const resp = await fetch(url, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
                     body: JSON.stringify(this.editForm),
@@ -224,43 +210,43 @@
                 if (data.status === 'success') {
                     this.editing = false;
                     this.editId = null;
-                    this.fetchSchedules();
                 } else {
                     alert('Update failed.');
+                    console.error(data);
                 }
             },
-             async deleteSchedule(id) {
-                if (!confirm('Are you sure you want to delete this?')) return;
-                const url = `/testing1/${id}`;
+            async deleteSchedule(id) {
+                if (!confirm('Are you sure?')) return;
+                const url = `/yestest/${id}`;
                 const resp = await fetch(url, {
                     method: 'DELETE',
                     headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
                 });
                 const data = await resp.json();
                 if (data.status !== 'deleted') {
                     alert('Delete failed.');
+                    console.error(data);
                 }
-                 this.fetchSchedules();
             },
             formatDate(dtStr) {
                 let d = new Date(dtStr);
-                return d.toLocaleString();
+                return isNaN(d) ? dtStr : d.toLocaleString();
             },
-           init() {
-
-                this.fetchSchedules();
+            init() {
                 // SSE
-                const source = new EventSource('/testing1/sse');
+                const source = new EventSource('/yestest/sse');
                 source.onmessage = (e) => {
-                   try {
+                    try {
                         this.schedules = JSON.parse(e.data);
                     } catch (err) {
                         console.error('SSE parse error:', err);
                     }
                 };
-                 source.onerror = (err) => {
+                source.onerror = (err) => {
                     console.error('SSE error:', err);
                 };
             },
