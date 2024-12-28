@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>YesTest App at /yestest</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css','resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body class="bg-gray-100 p-4">
@@ -152,26 +152,29 @@
             },
             async createRecord() {
                 this.message = '';
-                let resp = await fetch('/yestest', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content
-                    },
-                    body: JSON.stringify(this.form)
-                });
-                let data = await resp.json();
-                if (data.status === 'success') {
-                    this.message = 'Appointment booked!';
-                    // Clear the form
-                    this.form = { first_name: '', last_name: '', phone: '', scheduled_at: '' };
-                    // Switch to the list tab
-                    this.tab = 'list';
-                } else {
-                    alert('Failed to book appointment. Check console.');
-                    console.error(data);
+                try {
+                    let resp = await fetch('/yestest', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content
+                        },
+                        body: JSON.stringify(this.form)
+                    });
+                    let data = await resp.json();
+                    if (data.status === 'success') {
+                        this.message = 'Appointment booked!';
+                        this.form = { first_name: '', last_name: '', phone: '', scheduled_at: '' };
+                        // switch to the list tab to see new item appear
+                        this.tab = 'list';
+                    } else {
+                        alert('Failed to book appointment. Check console.');
+                        console.error(data);
+                    }
+                } catch (err) {
+                    console.error('Error in createRecord:', err);
                 }
             },
             editItem(item) {
@@ -189,41 +192,50 @@
                 this.editId = null;
             },
             async updateItem() {
+                if (!this.editId) return;
                 const url = `/yestest/${this.editId}`;
-                let resp = await fetch(url, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content
-                    },
-                    body: JSON.stringify(this.editForm)
-                });
-                let data = await resp.json();
-                if (data.status === 'success') {
-                    this.editing = false;
-                    this.editId = null;
-                } else {
-                    alert('Update failed. Check console.');
-                    console.error(data);
+                try {
+                    let resp = await fetch(url, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content
+                        },
+                        body: JSON.stringify(this.editForm)
+                    });
+                    let data = await resp.json();
+                    if (data.status === 'success') {
+                        this.editing = false;
+                        this.editId = null;
+                    } else {
+                        alert('Update failed. Check console.');
+                        console.error(data);
+                    }
+                } catch (err) {
+                    console.error('Error in updateItem:', err);
                 }
             },
             async deleteItem(id) {
                 if (!confirm('Are you sure you want to delete this?')) return;
                 const url = `/yestest/${id}`;
-                let resp = await fetch(url, {
-                    method: 'DELETE',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content
-                    },
-                });
-                let data = await resp.json();
-                if (data.status !== 'deleted') {
-                    alert('Delete failed. Check console.');
-                    console.error(data);
+                try {
+                    let resp = await fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content
+                        },
+                    });
+                    let data = await resp.json();
+                    if (data.status !== 'deleted') {
+                        alert('Delete failed. Check console.');
+                        console.error(data);
+                    }
+                } catch (err) {
+                    console.error('Error in deleteItem:', err);
                 }
             },
             formatDate(dtStr) {
