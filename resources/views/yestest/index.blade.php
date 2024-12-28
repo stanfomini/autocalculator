@@ -165,12 +165,10 @@
                 let data = await resp.json();
                 if (data.status === 'success') {
                     this.message = 'Appointment booked!';
-                    // Clear the form
                     this.form = { first_name: '', last_name: '', phone: '', scheduled_at: '' };
-                    // Switch to list tab
                     this.tab = 'list';
                 } else {
-                    alert('Failed to book appointment. Check console for errors.');
+                    alert('Failed to book appointment. Check console.');
                     console.error(data);
                 }
             },
@@ -205,7 +203,7 @@
                     this.editing = false;
                     this.editId = null;
                 } else {
-                    alert('Update failed. Check console.');
+                    alert('Update failed.');
                     console.error(data);
                 }
             },
@@ -222,17 +220,15 @@
                 });
                 let data = await resp.json();
                 if (data.status !== 'deleted') {
-                    alert('Delete failed. Check console.');
+                    alert('Delete failed.');
                     console.error(data);
                 }
             },
             formatDate(dtStr) {
                 let d = new Date(dtStr);
-                if (isNaN(d)) return dtStr;
-                return d.toLocaleString();
+                return isNaN(d) ? dtStr : d.toLocaleString();
             },
             init() {
-                // SSE
                 const source = new EventSource('/yestest/sse');
                 source.onmessage = (e) => {
                     try {
