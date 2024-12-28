@@ -1,13 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\YesTestController;
-use App\Http\Controllers\YesTestSseController;
+use App\Http\Controllers\AwesomeCalcController;
 
-// Real-time scheduling at /yestest
-// Ensure parameter naming is consistent and we haven't mismatched route params.
-Route::resource('yestest', YesTestController::class)
-     ->parameters(['yestest' => 'yestest']);
+// We keep the existing routes but add a new ?awesome? page route:
+Route::get('/awesome', [AwesomeCalcController::class, 'spaIndex'])->name('awesome.spa');
 
-// SSE route for real-time updates
-Route::get('/yestest/sse', [YesTestSseController::class, 'stream'])->name('yestest.sse');
+// You might have an API route for actual CRUD in routes/api.php, but if we do it here:
+Route::prefix('awesome')->group(function () {
+    Route::get('/{id}', [AwesomeCalcController::class, 'show'])->name('awesome.show');
+    // The SPA might load an individual record in the form
+});
