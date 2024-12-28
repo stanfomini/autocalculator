@@ -167,7 +167,7 @@
                     this.message = 'Appointment booked!';
                     // Clear the form
                     this.form = { first_name: '', last_name: '', phone: '', scheduled_at: '' };
-                    // Switch to list tab so user can see it (SSE updates after ~3s)
+                    // Switch to list tab
                     this.tab = 'list';
                 } else {
                     alert('Failed to book appointment. Check console for errors.');
