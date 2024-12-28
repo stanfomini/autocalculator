@@ -8,7 +8,7 @@
 </head>
 <body class="bg-gray-100 p-4">
     <div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
-        <h1 class="text-2xl font-bold mb-4">YesTest Scheduling</h1>
+        <h1 class="text-2xl font-bold mb-4">YesTest Scheduling (Single Page)</h1>
         <div class="flex gap-3 mb-4">
             <button class="px-4 py-2 bg-blue-500 text-white rounded"
                     :class="{ 'bg-blue-700': tab === 'form' }"
@@ -22,7 +22,7 @@
             </button>
         </div>
 
-        <!-- Form Tab -->
+        <!-- Form Tab for Creating a New Appointment -->
         <div x-show="tab === 'form'" class="space-y-4">
             <form @submit.prevent="createRecord" class="space-y-3">
                 <div>
@@ -55,7 +55,7 @@
             </template>
         </div>
 
-        <!-- List Tab -->
+        <!-- List Tab for Viewing & Editing Appointments -->
         <div x-show="tab === 'list'">
             <h2 class="text-xl font-bold mb-3">Current Appointments</h2>
             <ul class="space-y-2">
@@ -87,11 +87,11 @@
                 </template>
             </ul>
 
-            <!-- Edit Modal -->
+            <!-- Edit Modal (overlays on top of the list) -->
             <template x-if="editing">
                 <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                     <div class="bg-white p-4 rounded w-96 space-y-3">
-                        <h3 class="text-lg font-bold">Edit</h3>
+                        <h3 class="text-lg font-bold">Edit Appointment</h3>
                         <form @submit.prevent="updateItem" class="space-y-3">
                             <div>
                                 <label>First Name</label>
@@ -165,7 +165,9 @@
                 let data = await resp.json();
                 if (data.status === 'success') {
                     this.message = 'Appointment booked!';
+                    // Clear the form
                     this.form = { first_name: '', last_name: '', phone: '', scheduled_at: '' };
+                    // Switch to the list tab
                     this.tab = 'list';
                 } else {
                     alert('Failed to book appointment. Check console.');
@@ -203,12 +205,12 @@
                     this.editing = false;
                     this.editId = null;
                 } else {
-                    alert('Update failed.');
+                    alert('Update failed. Check console.');
                     console.error(data);
                 }
             },
             async deleteItem(id) {
-                if (!confirm('Are you sure?')) return;
+                if (!confirm('Are you sure you want to delete this?')) return;
                 const url = `/yestest/${id}`;
                 let resp = await fetch(url, {
                     method: 'DELETE',
@@ -220,15 +222,17 @@
                 });
                 let data = await resp.json();
                 if (data.status !== 'deleted') {
-                    alert('Delete failed.');
+                    alert('Delete failed. Check console.');
                     console.error(data);
                 }
             },
             formatDate(dtStr) {
                 let d = new Date(dtStr);
-                return isNaN(d) ? dtStr : d.toLocaleString();
+                if (isNaN(d)) return dtStr;
+                return d.toLocaleString();
             },
             init() {
+                // SSE for real-time listing
                 const source = new EventSource('/yestest/sse');
                 source.onmessage = (e) => {
                     try {
