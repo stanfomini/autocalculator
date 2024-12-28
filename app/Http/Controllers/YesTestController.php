@@ -7,18 +7,28 @@ use Illuminate\Http\Request;
 
 class YesTestController extends Controller
 {
+    /**
+     * Display the main SPA-like page for all CRUD actions.
+     */
     public function index()
     {
-        // Return the SPA-like Blade
+        // Return the single Blade that handles all CRUD via JavaScript.
         return view('yestest.index');
     }
 
+    /**
+     * (Optional) We can remove or redirect the 'create' method 
+     * since the form lives in yestest.index.blade.php.
+     */
     public function create()
     {
-        // Non-SPA fallback
-        return view('yestest.create');
+        // Redirect to index so we don't display a separate create page.
+        return redirect()->route('yestest.index');
     }
 
+    /**
+     * Store a newly created record (called by JavaScript fetch from index blade).
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -28,7 +38,7 @@ class YesTestController extends Controller
             'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
-        $test = YesTest::create($request->only([
+        $record = YesTest::create($request->only([
             'first_name',
             'last_name',
             'phone',
@@ -37,20 +47,32 @@ class YesTestController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'record' => $test,
+            'record' => $record,
         ]);
     }
 
+    /**
+     * If you want a fallback single-record view, keep show(). 
+     * Otherwise, remove or redirect it as well.
+     */
     public function show(YesTest $yestest)
     {
         return view('yestest.show', ['record' => $yestest]);
     }
 
+    /**
+     * (Optional) We can remove or redirect the 'edit' method 
+     * since the form is in yestest.index.blade.php, not a separate page.
+     */
     public function edit(YesTest $yestest)
     {
-        return view('yestest.edit', ['record' => $yestest]);
+        // Redirect to index or do nothing.
+        return redirect()->route('yestest.index');
     }
 
+    /**
+     * Update an existing record via JavaScript fetch from index blade.
+     */
     public function update(Request $request, YesTest $yestest)
     {
         $request->validate([
@@ -73,6 +95,9 @@ class YesTestController extends Controller
         ]);
     }
 
+    /**
+     * Delete the specified record via JavaScript fetch from index blade.
+     */
     public function destroy(YesTest $yestest)
     {
         $yestest->delete();
