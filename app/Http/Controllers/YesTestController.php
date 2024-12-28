@@ -17,12 +17,10 @@ class YesTestController extends Controller
     }
 
     /**
-     * (Optional) We can remove or redirect the 'create' method 
-     * since the form lives in yestest.index.blade.php.
+     * Redirect create to index, because the form is on the same page as the listing.
      */
     public function create()
     {
-        // Redirect to index so we don't display a separate create page.
         return redirect()->route('yestest.index');
     }
 
@@ -35,7 +33,7 @@ class YesTestController extends Controller
             'first_name'   => 'required|string|max:100',
             'last_name'    => 'required|string|max:100',
             'phone'        => 'required|string|max:30',
-            'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
+            'scheduled_at' => 'required|date_format:Y-m-d\\TH:i',
         ]);
 
         $record = YesTest::create($request->only([
@@ -45,29 +43,23 @@ class YesTestController extends Controller
             'scheduled_at',
         ]));
 
+        // Return JSON so the SPA can handle success without a full page reload
         return response()->json([
             'status' => 'success',
             'record' => $record,
         ]);
     }
 
-    /**
-     * If you want a fallback single-record view, keep show(). 
-     * Otherwise, remove or redirect it as well.
-     */
     public function show(YesTest $yestest)
     {
+        // For a fallback non-SPA view if needed
         return view('yestest.show', ['record' => $yestest]);
     }
 
-    /**
-     * (Optional) We can remove or redirect the 'edit' method 
-     * since the form is in yestest.index.blade.php, not a separate page.
-     */
     public function edit(YesTest $yestest)
     {
-        // Redirect to index or do nothing.
-        return redirect()->route('yestest.index');
+        // Fallback non-SPA editing
+        return view('yestest.edit', ['record' => $yestest]);
     }
 
     /**
@@ -79,7 +71,7 @@ class YesTestController extends Controller
             'first_name'   => 'required|string|max:100',
             'last_name'    => 'required|string|max:100',
             'phone'        => 'required|string|max:30',
-            'scheduled_at' => 'required|date_format:Y-m-d\TH:i',
+            'scheduled_at' => 'required|date_format:Y-m-d\\TH:i',
         ]);
 
         $yestest->update($request->only([
