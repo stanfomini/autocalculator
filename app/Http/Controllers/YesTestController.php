@@ -43,13 +43,11 @@ class YesTestController extends Controller
 
     public function show(YesTest $yestest)
     {
-        // Non-SPA fallback
         return view('yestest.show', ['record' => $yestest]);
     }
 
     public function edit(YesTest $yestest)
     {
-        // Non-SPA fallback
         return view('yestest.edit', ['record' => $yestest]);
     }
 
