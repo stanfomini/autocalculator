@@ -1,22 +1,23 @@
 <!DOCTYPE html>
-<html lang="en" x-data="awesomeCalcApp()" x-init="init()">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Awesome Calculator at /awesome</title>
-  <!-- Vite or your compiled assets -->
-  @vite(['resources/css/app.css', 'resources/js/app.js'])
-  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Awesome Calculator SPA</title>
 
-  <!-- Make sure Alpine.js is loaded BEFORE body or at least with defer -->
+  <!-- Alpine loaded with defer -->
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- If you want to remove CSRF or handle differently, do so. For demonstration, we'll just keep it. -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  @vite(['resources/css/app.css','resources/js/app.js'])
 
   <style>
     body {
-      background-color: #1e1e2f; /* dark background */
-      color: #eee; /* light text */
-      font-family: sans-serif;
       margin: 0;
       padding: 1rem;
+      background-color: #1e1e2f; 
+      color: #eee;
+      font-family: sans-serif;
     }
     .tab-button {
       background-color: #333;
@@ -44,6 +45,7 @@
       padding: 0.5rem;
       border-radius: 4px;
       width: 100%;
+      box-sizing: border-box; /* ensure consistent sizing */
     }
     .btn-primary {
       background-color: #007aff;
@@ -58,7 +60,9 @@
     }
   </style>
 </head>
-<body>
+
+<!-- Alpine main container -->
+<body x-data="awesomeCalcApp()" x-init="init()">
   <h1 class="text-2xl font-bold mb-4">Awesome Calculator SPA</h1>
 
   <div class="flex gap-2 mb-4">
@@ -66,11 +70,11 @@
     <button class="tab-button" :class="{ 'active': tab==='list' }" @click="tab='list'">List of Calculators</button>
   </div>
 
-  <!-- Calculator Tab -->
+  <!-- Calculator Card -->
   <div x-show="tab === 'calc'" class="card">
     <h2 class="text-xl font-semibold mb-2">Finance/Lease Calculator</h2>
-    <form @submit.prevent="saveCalculator">
-      <div class="mb-2">
+    <form @submit.prevent="saveCalculator" class="space-y-2">
+      <div>
         <label>Calculation Type</label>
         <select x-model="calcForm.calc_type">
           <option value="lease">Lease</option>
@@ -78,69 +82,69 @@
           <option value="cash">Cash</option>
         </select>
       </div>
-      <div class="mb-2">
+      <div>
         <label>Vehicle Price</label>
-        <input type="number" step="0.01" x-model="calcForm.vehicle_price"/>
+        <input type="number" step="0.01" x-model="calcForm.vehicle_price">
       </div>
-      <div class="mb-2">
+      <div>
         <label>Rebates & Discounts</label>
-        <input type="number" step="0.01" x-model="calcForm.rebates_and_discounts"/>
+        <input type="number" step="0.01" x-model="calcForm.rebates_and_discounts">
       </div>
-      <div class="mb-2">
+      <div>
         <label>Down Payment</label>
-        <input type="number" step="0.01" x-model="calcForm.down_payment"/>
+        <input type="number" step="0.01" x-model="calcForm.down_payment">
       </div>
-      <div class="mb-2">
+      <div>
         <label>Term (Months)</label>
-        <input type="number" x-model="calcForm.term_months"/>
+        <input type="number" x-model="calcForm.term_months">
       </div>
-      <div class="mb-2">
+      <div>
         <label>Residual (%)</label>
-        <input type="number" step="0.01" x-model="calcForm.residual_percent"/>
+        <input type="number" step="0.01" x-model="calcForm.residual_percent">
       </div>
-      <div class="mb-2">
+      <div>
         <label>Residual Value ($)</label>
-        <input type="number" step="0.01" x-model="calcForm.residual_value"/>
+        <input type="number" step="0.01" x-model="calcForm.residual_value">
       </div>
-      <div class="mb-2">
+      <div>
         <label>Money Factor</label>
-        <input type="number" step="0.00001" x-model="calcForm.money_factor"/>
+        <input type="number" step="0.00001" x-model="calcForm.money_factor">
       </div>
-      <div class="mb-2">
+      <div>
         <label>Tax (%)</label>
-        <input type="number" step="0.01" x-model="calcForm.tax_percent"/>
+        <input type="number" step="0.01" x-model="calcForm.tax_percent">
       </div>
-      <div class="mb-2">
+      <div>
         <label>Tax (Total $)</label>
-        <input type="number" step="0.01" x-model="calcForm.tax_total"/>
+        <input type="number" step="0.01" x-model="calcForm.tax_total">
       </div>
-      <div class="mb-2">
-        <label><input type="checkbox" x-model="calcForm.capitalize_taxes"/> Capitalize Taxes</label>
+      <div>
+        <label><input type="checkbox" x-model="calcForm.capitalize_taxes"> Capitalize Taxes</label>
       </div>
-      <div class="mb-2">
+      <div>
         <label>Additional Fees ($)</label>
-        <input type="number" step="0.01" x-model="calcForm.additional_fees"/>
+        <input type="number" step="0.01" x-model="calcForm.additional_fees">
       </div>
-      <div class="mb-2">
-        <label><input type="checkbox" x-model="calcForm.capitalize_fees"/> Capitalize Fees</label>
+      <div>
+        <label><input type="checkbox" x-model="calcForm.capitalize_fees"> Capitalize Fees</label>
       </div>
-      <div class="mb-2">
+      <div>
         <label>Yearly Maintenance ($)</label>
-        <input type="number" step="0.01" x-model="calcForm.maintenance_cost"/>
+        <input type="number" step="0.01" x-model="calcForm.maintenance_cost">
       </div>
-      <div class="mb-2">
+      <div>
         <label>Monthly Insurance ($)</label>
-        <input type="number" step="0.01" x-model="calcForm.monthly_insurance"/>
+        <input type="number" step="0.01" x-model="calcForm.monthly_insurance">
       </div>
-      <div class="mb-2">
+      <div>
         <label>Monthly Fuel/Electric ($)</label>
-        <input type="number" step="0.01" x-model="calcForm.monthly_fuel"/>
+        <input type="number" step="0.01" x-model="calcForm.monthly_fuel">
       </div>
       <button type="submit" class="btn-primary mt-2">Save Calculator</button>
     </form>
   </div>
 
-  <!-- Listing Tab -->
+  <!-- Listing Card -->
   <div x-show="tab === 'list'" class="card">
     <h2 class="text-xl font-semibold mb-2">List of Saved Calculators</h2>
     <ul>
@@ -177,13 +181,14 @@
           monthly_fuel: ''
         },
         calcList: [],
-        async init() {
-          console.log("Alpine initialized. Fetching calculators...");
-          await this.fetchAllCalculators();
+        init() {
+          console.log("Alpine init: Attempting to fetch all calculators...");
+          this.fetchAllCalculators();
         },
         async fetchAllCalculators() {
           try {
             let resp = await fetch('/api/awesome');
+            if (!resp.ok) throw new Error('Failed to fetch list');
             this.calcList = await resp.json();
           } catch (err) {
             console.error('fetchAllCalculators error:', err);
@@ -191,28 +196,29 @@
         },
         async saveCalculator() {
           try {
+            // We'll always POST a new one. If you want edit, you'd do a separate approach.
             let resp = await fetch('/api/awesome', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector("meta[name='csrf-token']").content
+                // remove X-CSRF if you don't want to handle tokens
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
               },
               body: JSON.stringify(this.calcForm)
             });
             let data = await resp.json();
             if (!resp.ok) {
-              console.error('Error saving:', data);
-              alert('Save failed.');
+              alert('Error saving. See console.');
+              console.error(data);
             } else {
               alert('Calculator saved!');
-              await this.fetchAllCalculators();
+              this.fetchAllCalculators();
               this.tab = 'list';
             }
           } catch (err) {
+            alert('Save error. Check console.');
             console.error('saveCalculator error:', err);
-            alert('Save error, see console.');
           }
         },
         async loadCalculator(id) {
@@ -220,7 +226,7 @@
             let resp = await fetch('/api/awesome/' + id);
             if (!resp.ok) throw new Error('Load error');
             let data = await resp.json();
-            // populate
+            // Populate the form
             this.calcForm = {
               calc_type: data.calc_type || 'lease',
               vehicle_price: data.vehicle_price || '',
@@ -241,11 +247,11 @@
             };
             this.tab = 'calc';
           } catch (err) {
-            console.error('loadCalculator error:', err);
-            alert('Failed to load calculator');
+            alert('Failed to load that calculator.');
+            console.error(err);
           }
         }
-      };
+      }
     }
   </script>
 </body>
