@@ -5,5 +5,5 @@
   "display": "standalone",
   "background_color": "#1e1e2f",
   "theme_color": "#1e1e2f",
-  "description": "A minimal PWA manifest for our dark-themed Fleet Ownership Cost Analyzer."
+  "description": "Dark-themed Fleet Ownership Cost Analyzer PWA."
 }
