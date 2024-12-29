@@ -28,5 +28,7 @@ class AwesomeCalc extends Model
         'maintenance_cost',
         'monthly_insurance',
         'monthly_fuel',
+        'annual_interest_rate',
+        'taxes_and_fees_financed',
     ];
 }
