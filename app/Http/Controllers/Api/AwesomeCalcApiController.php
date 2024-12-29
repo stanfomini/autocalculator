@@ -10,6 +10,7 @@ class AwesomeCalcApiController extends Controller
 {
     public function index()
     {
+        // Return the entire list of stored calculators
         return AwesomeCalc::all();
     }
 
