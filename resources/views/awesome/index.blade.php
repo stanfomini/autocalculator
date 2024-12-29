@@ -7,20 +7,20 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1e1e2f">
 
-  <!-- Alpine for top navigation only -->
+  <!-- Alpine for toggling 'calculator' vs 'saved' pages ONLY -->
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <style>
     body {
-      margin:0;
-      background:#1e1e2f;
-      color:#eee;
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;
-      font-size:16px;
+      margin: 0;
+      background: #1e1e2f;
+      color: #eee;
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;
+      font-size: 16px;
     }
     .top-nav {
-      background:#2a2a3c; color:#fff; display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem;
+      background: #2a2a3c; color: #fff; display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem;
     }
     .top-nav .nav-left button {
       background:#444; color:#bbb; border:none; padding:0.5rem 1rem; margin-right:0.5rem; border-radius:6px; cursor:pointer;
@@ -35,32 +35,34 @@
     input[type="number"], input[type="text"] {
       background:#333; color:#fff; border:1px solid #666; border-radius:6px; padding:0.75rem; font-size:1rem; width:100%;
     }
-    .tab { background:#444; color:#bbb; padding:0.5rem 1rem; margin-right:0.5rem; border-radius:6px; cursor:pointer; border:none; }
+    .tab {
+      background:#444; color:#bbb; padding:0.5rem 1rem; margin-right:0.5rem; border-radius:6px; cursor:pointer; border:none;
+    }
     .tab.active { background:#007aff; color:#fff; }
     .hidden { display:none; }
-    .cost-indicator { padding:0.5rem; border-radius:6px; display:inline-block; margin-bottom:1rem; font-weight:bold; }
+    .cost-indicator {
+      padding:0.5rem; border-radius:6px; display:inline-block; margin-bottom:1rem; font-weight:bold;
+    }
     .green { background-color:#4caf50; color:#fff; }
     .yellow { background-color:#ffeb3b; color:#000; }
     .red { background-color:#f44336; color:#fff; }
-    /* etc... */
   </style>
 
   <script>
-    // Service Worker Registration
+    // Register the Service Worker
     if('serviceWorker' in navigator){
       navigator.serviceWorker.register('/service-worker.js');
     }
 
-    //////////////////////////////////////////////////////////////////
-    // OLD WORKING CALCULATOR LOGIC (LEASE, CASH, ETC.)
-    //////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+    // OLD WORKING CALCULATOR LOGIC (Lease, Cash, etc.)
+    /////////////////////////////////////////////////////////////////////////////
 
-    // Global variables for the old approach
-    let selectedTab = 'lease';
-    let lastChangedTaxField = 'percentage';
-    let lastChangedResidualField = 'percentage';
+    // Global variables
+    let selectedTab='lease';
+    let lastChangedTaxField='percentage';
+    let lastChangedResidualField='percentage';
 
-    // The old tab logic
     function selectTab(tabName){
       selectedTab=tabName;
       document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
@@ -74,7 +76,6 @@
       document.getElementById('cashForm').style.display=(selectedTab==='cash'?'block':'none');
     }
 
-    // The old synergy code for lease
     function leaseVehicleOrRebatesChanged(){
       syncLeaseTaxes();
       syncLeaseResidual();
@@ -101,16 +102,15 @@
       updateCalculations();
     }
     function syncLeaseTaxes(){
-      // your old code for calculating taxes in lease...
-      // set the relevant fields
+      // The old code for computing taxes in the lease scenario
+      // ...
     }
     function syncLeaseResidual(){
-      // your old code for residual...
+      // The old code for computing residual in the lease scenario
+      // ...
     }
-
-    // The actual cost calculations
     function calculateLeaseCosts(data){
-      // your old detailed logic that returns the needed fields
+      // your old comprehensive logic for lease
       return {
         monthlyPayment:'0.00',
         totalUpfrontCost:'0.00',
@@ -136,7 +136,6 @@
         totalMonthlyCost:'0.00'
       };
     }
-
     function calculateGranularCosts(data){
       if(data.option==='lease'){
         return calculateLeaseCosts(data);
@@ -153,70 +152,26 @@
       }
     }
     function updateCalculations(){
-      // gather fields from whichever tab is selected
       let data={};
       if(selectedTab==='lease'){
         data.option='lease';
-        // gather the existing fields e.g.:
-        // data.vehiclePrice=parseFloat(document.getElementById('leaseVehiclePrice').value) || 0;
-        // ...
+        // gather e.g. data.vehiclePrice from #leaseVehiclePrice
       } else if(selectedTab==='financing'){
         data.option='financing';
       } else {
         data.option='cash';
-        // gather e.g. data.vehiclePrice from "cashVehiclePrice" etc.
       }
       let result=calculateGranularCosts(data);
       updateUI(result);
     }
-
     function updateUI(calc){
-      // e.g. set monthlyPayment, totalUpfrontCost, etc.
-      // also do color coding
+      // sets the results, color codes the monthlyPayment, etc.
       document.getElementById('results').classList.remove('hidden');
     }
 
-    //////////////////////////////////////////////////////////////////
-    // SAVED CALCULATORS (GLOBAL FUNCTIONS)
-    //////////////////////////////////////////////////////////////////
-
-    // We'll store the fetched list in a global variable, so Alpine can show it:
-    let calcListGlobal=[];
-
-    async function fetchCalcList(){
-      try {
-        let resp=await fetch('/api/awesome');
-        if(!resp.ok) throw new Error('Failed to fetch list');
-        let data=await resp.json();
-        calcListGlobal=data;
-        // now we set the Alpine var
-        document.querySelector('[x-data]').__x.$data.calcList=data;
-      } catch(err){
-        console.error('fetchCalcList error:',err);
-        alert('Failed to fetch. See console.');
-      }
-    }
-
-    async function loadCalculatorFromList(id){
-      try {
-        let resp=await fetch('/api/awesome/'+id);
-        if(!resp.ok) throw new Error('Load error '+id);
-        let calc=await resp.json();
-        // interpret calc_type => selectedTab
-        selectedTab=calc.calc_type||'lease';
-        document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
-        document.getElementById(selectedTab+'Tab').classList.add('active');
-        updateFormVisibility();
-        // fill fields e.g. if lease, set leaseVehiclePrice=calc.vehicle_price ...
-        // then updateCalculations();
-        updateCalculations();
-        // switch Alpine page => "calculator"
-        document.querySelector('[x-data]').__x.$data.currentView='calculator';
-      } catch(err){
-        console.error('loadCalculatorFromList error:',err);
-        alert('Failed to load. See console.');
-      }
-    }
+    /////////////////////////////////////////////////////////////////////////////
+    // SAVE / LOAD FROM /api/awesome
+    /////////////////////////////////////////////////////////////////////////////
 
     async function saveCalculatorToApi(){
       let calc_type=selectedTab;
@@ -226,7 +181,7 @@
       } else if(calc_type==='cash'){
         vehicle_price=document.getElementById('cashVehiclePrice').value||0;
       }
-      // etc.
+      // you could gather more fields if desired
       const data={ calc_type, vehicle_price };
       try {
         let resp=await fetch('/api/awesome',{
@@ -241,7 +196,7 @@
         let result=await resp.json();
         if(!resp.ok){
           console.error('Save error:',result);
-          alert('Failed to save. See console.');
+          alert('Failed to save. Check console.');
         } else {
           alert('Saved to /api/awesome');
         }
@@ -250,28 +205,83 @@
         alert('Error. See console.');
       }
     }
+
+    // We'll fetch the list and put it into Alpine's calcList
+    async function fetchCalcList(){
+      try {
+        let resp=await fetch('/api/awesome');
+        if(!resp.ok) throw new Error('Failed to fetch list');
+        let data=await resp.json();
+        // store in Alpine's calcList
+        document.querySelector('[x-data]').__x.$data.calcList=data;
+      } catch(err){
+        console.error('fetchCalcList error:',err);
+        alert('Could not fetch. See console.');
+      }
+    }
+
+    async function loadCalculatorFromList(id){
+      try {
+        let resp=await fetch('/api/awesome/'+id);
+        if(!resp.ok) throw new Error('Load error:'+id);
+        let calc=await resp.json();
+        // interpret calc_type => selectedTab
+        selectedTab=calc.calc_type||'lease';
+        document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+        document.getElementById(selectedTab+'Tab').classList.add('active');
+        updateFormVisibility();
+
+        // fill fields if 'lease', 'cash', etc.
+        if(selectedTab==='lease'){
+          document.getElementById('leaseVehiclePrice').value=calc.vehicle_price||'';
+          document.getElementById('leaseRebatesAndDiscounts').value=calc.rebates_and_discounts||'';
+          document.getElementById('leaseDownPayment').value=calc.down_payment||'';
+          document.getElementById('leaseTermMonths').value=calc.term_months||'36';
+          document.getElementById('residualValue').value=calc.residual_percent||'';
+          document.getElementById('residualValueTotal').value=calc.residual_value||'';
+          document.getElementById('moneyFactor').value=calc.money_factor||'';
+          document.getElementById('leaseTaxPercentage').value=calc.tax_percent||'';
+          document.getElementById('leaseTaxTotal').value=calc.tax_total||'';
+          document.getElementById('leaseAddTaxesToLease').checked=calc.capitalize_taxes?true:false;
+          document.getElementById('leaseAdditionalFees').value=calc.additional_fees||'';
+          document.getElementById('leaseAddFeesToLease').checked=calc.capitalize_fees?true:false;
+          document.getElementById('leaseMaintenanceCost').value=calc.maintenance_cost||'';
+          document.getElementById('leaseMonthlyInsurance').value=calc.monthly_insurance||'';
+          document.getElementById('leaseMonthlyFuel').value=calc.monthly_fuel||'';
+        } else if (selectedTab==='cash'){
+          document.getElementById('cashVehiclePrice').value=calc.vehicle_price||'';
+          document.getElementById('cashTaxPercentage').value=calc.tax_percent||'';
+          document.getElementById('cashAddTaxesToCash').checked=calc.capitalize_taxes?true:false;
+          document.getElementById('cashAdditionalFees').value=calc.additional_fees||'';
+          document.getElementById('cashAddFeesToCash').checked=calc.capitalize_fees?true:false;
+          document.getElementById('cashMaintenanceCost').value=calc.maintenance_cost||'';
+          document.getElementById('cashMonthlyInsurance').value=calc.monthly_insurance||'';
+          document.getElementById('cashMonthlyFuel').value=calc.monthly_fuel||'';
+        }
+        // recalc
+        updateCalculations();
+        // switch Alpine page => "calculator"
+        document.querySelector('[x-data]').__x.$data.currentView='calculator';
+      } catch(err){
+        console.error('loadCalculatorFromList error:',err);
+        alert('Load error. See console.');
+      }
+    }
   </script>
 </head>
 <body>
-  <!-- Top Nav with Alpine for page switching -->
-  <div class="top-nav" x-data>
+  <div class="top-nav">
     <div class="nav-left">
-      <button :class="{ 'active': currentView==='calculator' }"
-              @click="currentView='calculator'">
-        Calculator
-      </button>
-      <button :class="{ 'active': currentView==='saved' }"
-              @click="currentView='saved'; fetchCalcList()">
-        Saved Calculators
-      </button>
+      <!-- Switch page via Alpine: 'calculator' vs 'saved' -->
+      <button :class="{ 'active': currentView==='calculator' }" @click="currentView='calculator'">Calculator</button>
+      <button :class="{ 'active': currentView==='saved' }" @click="currentView='saved'; fetchCalcList()">Saved Calculators</button>
     </div>
     <div style="font-weight:bold;">Fleet Ownership Cost Analyzer</div>
   </div>
 
-  <div class="content" x-data="{ currentView:'calculator', calcList:[] }">
-    <!-- CALCULATOR PAGE -->
+  <div class="content">
+    <!-- PAGE: Calculator -->
     <div x-show="currentView==='calculator'" style="display:none;">
-
       <div class="card" id="inputSection">
         <div style="margin-bottom:0.5rem;">
           <button id="leaseTab" class="tab" onclick="selectTab('lease')">Lease</button>
@@ -293,13 +303,45 @@
           <label>Lease Term (Months):
             <input type="number" id="leaseTermMonths" onchange="updateCalculations()">
           </label>
-          <!-- more fields e.g. residualValue, etc. -->
-          <button style="margin-top:1rem;" onclick="saveCalculatorToApi()">Save Lease to /api/awesome</button>
+          <div class="flex-row">
+            <span class="small-label">Residual (%):</span>
+            <input type="number" id="residualValue" oninput="residualPercentageChanged()" style="width:80px;">
+            <span class="small-label">Residual ($):</span>
+            <input type="number" id="residualValueTotal" oninput="residualTotalChanged()" style="width:80px;">
+          </div>
+          <label>Money Factor:
+            <input type="number" id="moneyFactor" onchange="updateCalculations()">
+          </label>
+          <div class="flex-row">
+            <span class="small-label">Taxes (%):</span>
+            <input type="number" id="leaseTaxPercentage" oninput="leaseTaxPercentageChanged()" style="width:80px;">
+            <span class="small-label">Tax ($):</span>
+            <input type="number" id="leaseTaxTotal" oninput="leaseTaxTotalChanged()" style="width:80px;">
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="leaseAddTaxesToLease" onchange="updateCalculations()"> Capitalize Taxes into Lease
+          </label>
+          <label>Additional Fees ($):
+            <input type="number" id="leaseAdditionalFees" onchange="updateCalculations()">
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="leaseAddFeesToLease" onchange="updateCalculations()"> Capitalize Fees into Lease
+          </label>
+          <label>Yearly Maintenance ($):
+            <input type="number" id="leaseMaintenanceCost" onchange="updateCalculations()">
+          </label>
+          <label>Monthly Insurance ($):
+            <input type="number" id="leaseMonthlyInsurance" onchange="updateCalculations()">
+          </label>
+          <label>Monthly Fuel/Electric ($):
+            <input type="number" id="leaseMonthlyFuel" onchange="updateCalculations()">
+          </label>
+          <button style="margin-top:0.5rem;" onclick="saveCalculatorToApi()">Save Lease to /api/awesome</button>
         </div>
 
         <!-- FINANCING FORM -->
         <div id="financingForm" style="display:none;">
-          <p style="color:#ccc;">Financing form here (todo)</p>
+          <p style="color:#ccc;">Financing form (TBD)</p>
         </div>
 
         <!-- CASH FORM -->
@@ -307,8 +349,28 @@
           <label>Vehicle Price ($):
             <input type="number" id="cashVehiclePrice" onchange="updateCalculations()">
           </label>
-          <!-- more fields... -->
-          <button style="margin-top:1rem;" onclick="saveCalculatorToApi()">Save Cash to /api/awesome</button>
+          <label>Taxes (%):
+            <input type="number" id="cashTaxPercentage" onchange="updateCalculations()">
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="cashAddTaxesToCash" onchange="updateCalculations()"> Add Taxes to Vehicle Price
+          </label>
+          <label>Additional Fees ($):
+            <input type="number" id="cashAdditionalFees" onchange="updateCalculations()">
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="cashAddFeesToCash" onchange="updateCalculations()"> Add Fees to Vehicle Price
+          </label>
+          <label>Yearly Maintenance ($):
+            <input type="number" id="cashMaintenanceCost" onchange="updateCalculations()">
+          </label>
+          <label>Monthly Insurance ($):
+            <input type="number" id="cashMonthlyInsurance" onchange="updateCalculations()">
+          </label>
+          <label>Monthly Fuel/Electric ($):
+            <input type="number" id="cashMonthlyFuel" onchange="updateCalculations()">
+          </label>
+          <button style="margin-top:0.5rem;" onclick="saveCalculatorToApi()">Save Cash to /api/awesome</button>
         </div>
       </div>
 
@@ -334,7 +396,7 @@
       </div>
     </div>
 
-    <!-- SAVED CALCULATORS PAGE -->
+    <!-- PAGE: Saved Calculators -->
     <div x-show="currentView==='saved'" style="display:none;">
       <div class="card">
         <h2>My Saved Calculators</h2>
@@ -351,7 +413,6 @@
         </ul>
       </div>
     </div>
-
   </div>
 </body>
 </html>
