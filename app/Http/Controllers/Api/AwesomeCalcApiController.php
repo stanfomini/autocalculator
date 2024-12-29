@@ -15,14 +15,12 @@ class AwesomeCalcApiController extends Controller
 
     public function store(Request $request)
     {
+        // Minimal validation for demonstration
         $validated = $request->validate([
             'calc_type' => 'in:lease,financing,cash',
             'vehicle_price' => 'numeric',
-            'rebates_and_discounts' => 'numeric',
-            // etc. Add more validation as needed
         ]);
-
-        $calc = AwesomeCalc::create($validated);
+        $calc = AwesomeCalc::create($request->all());
         return response()->json($calc, 201);
     }
 
@@ -36,16 +34,14 @@ class AwesomeCalcApiController extends Controller
         $validated = $request->validate([
             'calc_type' => 'in:lease,financing,cash',
             'vehicle_price' => 'numeric',
-            // etc
         ]);
-
-        $awesome->update($validated);
+        $awesome->update($request->all());
         return $awesome;
     }
 
     public function destroy(AwesomeCalc $awesome)
     {
         $awesome->delete();
-        return response()->json(['status' => 'deleted'], 200);
+        return response()->json(['status' => 'deleted']);
     }
 }
