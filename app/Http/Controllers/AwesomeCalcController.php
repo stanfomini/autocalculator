@@ -8,7 +8,7 @@ class AwesomeCalcController extends Controller
 {
     public function spaIndex()
     {
-        // Return the main Blade, which has the old calculator UI + a new ?Saved? page
+        // Return the Blade with the old calculator + new "Saved" page
         return view('awesome.index');
     }
 }
