@@ -9,6 +9,5 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Basic pass-through fetch
   event.respondWith(fetch(event.request));
 });
