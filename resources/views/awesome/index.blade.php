@@ -5,21 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Fleet Ownership Cost Analyzer</title>
 
-  <!-- Dark style from before (#1e1e2f), with white text, plus your leasing functionality -->
+  <!-- Register manifest & dark theme color -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1e1e2f">
 
   <!-- Alpine for tab switching only -->
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <!-- Optional CSRF if needed -->
+  <!-- If needed, CSRF token -->
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <style>
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      background: #1e1e2f; /* Dark */
-      color: #eee; /* Light text */
+      background: #1e1e2f; /* Dark mode */
+      color: #eee;
       font-size: 16px;
     }
     .app-container {
@@ -141,9 +141,52 @@
   </style>
 
   <script>
-    // Service Worker registration
+    // Register service worker so no 404
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js');
+    }
+
+    // The function to POST to /api/awesome
+    async function saveCalculatorToApi() {
+      // gather some basic fields (we'll do a minimal example with just vehicle_price & calc_type)
+      let calc_type = window.selectedTab; // 'lease','financing','cash'
+      let vehicle_price = 0;
+
+      if (calc_type === 'lease') {
+        vehicle_price = document.getElementById('leaseVehiclePrice').value || 0;
+      } else if (calc_type === 'financing') {
+        // handle when you implement financing
+      } else if (calc_type === 'cash') {
+        vehicle_price = document.getElementById('cashVehiclePrice').value || 0;
+      }
+
+      const data = {
+        calc_type,
+        vehicle_price
+        // you could also gather other fields if desired
+      };
+
+      try {
+        let resp = await fetch('/api/awesome', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify(data)
+        });
+        let result = await resp.json();
+        if (!resp.ok) {
+          console.error('Save error:', result);
+          alert('Failed to save. Check console.');
+        } else {
+          alert('Calculator saved to /api/awesome!');
+        }
+      } catch(err) {
+        console.error('Saving error:', err);
+        alert('Error. See console.');
+      }
     }
 
     let selectedTab = 'lease';
@@ -252,8 +295,12 @@
       if (data.option === 'lease') {
         return calculateLeaseCosts(data);
       } else if (data.option === 'financing') {
-        // We can expand financing logic if needed
-        return {monthlyPayment:"0.00",totalUpfrontCost:"0.00",totalYearlyCost:"0.00",totalMonthlyCost:"0.00"};
+        return {
+          monthlyPayment:"0.00",
+          totalUpfrontCost:"0.00",
+          totalYearlyCost:"0.00",
+          totalMonthlyCost:"0.00"
+        };
       } else {
         return calculateCashCosts(data);
       }
@@ -441,7 +488,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      selectTab('lease'); // default to lease tab
+      selectTab('lease');
     });
   </script>
 </head>
@@ -449,8 +496,6 @@
   <div class="app-container">
     <div class="app-header">Fleet Ownership Cost Analyzer</div>
     <div class="content">
-
-      <!-- Input Section -->
       <div class="card" id="inputSection">
         <div class="tab-bar">
           <div id="leaseTab" class="tab" @click="tab='lease'; selectTab('lease')">Lease</div>
@@ -510,7 +555,7 @@
 
         <!-- Financing Form -->
         <div id="financingForm" style="display:none;">
-          <p style="color:#ccc;">Financing form (to be implemented if needed)</p>
+          <p style="color:#ccc;">Financing form (TBD)</p>
         </div>
 
         <!-- Cash Form -->
