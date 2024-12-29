@@ -8,7 +8,7 @@ class AwesomeCalcController extends Controller
 {
     public function spaIndex()
     {
-        // Returns the main SPA blade
+        // Return the SPA blade at /awesome
         return view('awesome.index');
     }
 }
