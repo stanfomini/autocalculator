@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('awesome_calcs', function (Blueprint $table) {
             $table->id();
-            $table->string('calc_type')->default('lease'); // "lease", "finance", or "cash"
+            $table->string('calc_type')->default('lease');
             $table->decimal('vehicle_price', 10, 2)->default(0);
             $table->decimal('rebates_and_discounts', 10, 2)->default(0);
             $table->decimal('down_payment', 10, 2)->default(0);
