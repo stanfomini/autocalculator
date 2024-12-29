@@ -1,192 +1,141 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ tab: 'calc' }">
+<html lang="en" x-data="{ tab:'lease' }">
 <head>
-  <meta charset="UTF-8">
-  <title>Awesome Calculator SPA</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Fleet Ownership Cost Analyzer</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
 
   <!-- Alpine for tab switching only -->
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
   <!-- Optional CSRF if needed -->
   <meta name="csrf-token" content="{{ csrf_token() }}">
-
-  @vite(['resources/css/app.css','resources/js/app.js'])
 
   <style>
     body {
       margin: 0;
-      padding: 1rem;
-      background-color: #f2f2f2; /* Light background */
-      color: #000; /* Black text */
-      font-family: sans-serif;
-    }
-    .tab-button {
-      background-color: #ddd;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      background: #f2f2f7;
       color: #333;
-      padding: 0.5rem 1rem;
-      margin-right: 0.5rem;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      border: none;
+      font-size: 16px;
     }
-    .tab-button.active {
-      background-color: #007aff;
-      color: #fff;
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: auto;
+    }
+    .app-header {
+      background: #ffffff;
+      border-bottom: 1px solid #ccc;
+      padding: 1rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+      text-align: center;
+    }
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      gap: 1rem;
     }
     .card {
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      background: #fff;
+      border-radius: 12px;
       padding: 1rem;
-      margin-bottom: 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
-    input, select {
-      background-color: #fff;
-      border: 1px solid #999;
-      color: #000;
-      padding: 0.5rem;
-      border-radius: 4px;
+    .tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 6px;
+      background: #eee;
+      font-size: 1rem;
+    }
+    .tab.active {
+      background: #007aff;
+      color: #fff;
+      font-weight: bold;
+    }
+    label {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    input[type="number"], input[type="text"] {
       width: 100%;
-      box-sizing: border-box;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      font-size: 1rem;
+      gap: 0.5rem;
+    }
+    .small-label {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    .flex-row {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .results-section .cost-indicator {
+      padding: 0.5rem;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 1rem;
+      font-weight: bold;
+    }
+    .green { background-color: #4caf50; color: white; }
+    .yellow { background-color: #ffeb3b; color: black; }
+    .red { background-color: #f44336; color: white; }
+    .results-section h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      font-weight: bold;
+    }
+    .results-section .detail {
       margin-bottom: 0.5rem;
     }
-    .btn-primary {
-      background-color: #007aff;
-      color: #fff;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-    }
-    .btn-primary:hover {
-      background-color: #005bb5;
-    }
   </style>
-</head>
-<body onload="initApp()">
-
-  <h1 style="font-size:1.5rem; margin-bottom:1rem;">Awesome Calculator SPA</h1>
-
-  <div style="margin-bottom:1rem;">
-    <button class="tab-button" :class="{ 'active': tab==='calc' }" @click="tab='calc'">Calculator</button>
-    <button class="tab-button" :class="{ 'active': tab==='list' }" @click="tab='list'">List of Calculators</button>
-  </div>
-
-  <!-- Calculator Card -->
-  <div class="card" x-show="tab==='calc'">
-    <h2 style="font-size:1.25rem; margin-bottom:0.5rem;">Finance/Lease Calculator</h2>
-    <form onsubmit="saveCalculator(event)">
-      <label>Calculation Type</label>
-      <select id="calc_type">
-        <option value="lease">Lease</option>
-        <option value="financing">Financing</option>
-        <option value="cash">Cash</option>
-      </select>
-
-      <label>Vehicle Price</label>
-      <input type="number" step="0.01" id="vehicle_price">
-
-      <label>Rebates & Discounts</label>
-      <input type="number" step="0.01" id="rebates_and_discounts">
-
-      <label>Down Payment</label>
-      <input type="number" step="0.01" id="down_payment">
-
-      <label>Term (Months)</label>
-      <input type="number" id="term_months" value="36">
-
-      <label>Residual (%)</label>
-      <input type="number" step="0.01" id="residual_percent">
-
-      <label>Residual Value ($)</label>
-      <input type="number" step="0.01" id="residual_value">
-
-      <label>Money Factor</label>
-      <input type="number" step="0.00001" id="money_factor">
-
-      <label>Tax (%)</label>
-      <input type="number" step="0.01" id="tax_percent">
-
-      <label>Tax (Total $)</label>
-      <input type="number" step="0.01" id="tax_total">
-
-      <label><input type="checkbox" id="capitalize_taxes"> Capitalize Taxes</label>
-
-      <label>Additional Fees ($)</label>
-      <input type="number" step="0.01" id="additional_fees">
-
-      <label><input type="checkbox" id="capitalize_fees"> Capitalize Fees</label>
-
-      <label>Yearly Maintenance ($)</label>
-      <input type="number" step="0.01" id="maintenance_cost">
-
-      <label>Monthly Insurance ($)</label>
-      <input type="number" step="0.01" id="monthly_insurance">
-
-      <label>Monthly Fuel/Electric ($)</label>
-      <input type="number" step="0.01" id="monthly_fuel">
-
-      <button type="submit" class="btn-primary" style="margin-top:0.5rem;">Save Calculator</button>
-    </form>
-  </div>
-
-  <!-- Listing Card -->
-  <div class="card" x-show="tab==='list'">
-    <h2 style="font-size:1.25rem; margin-bottom:0.5rem;">List of Saved Calculators</h2>
-    <ul id="calcList"></ul>
-  </div>
-
   <script>
-    let calcList = [];
-
-    function initApp() {
-      fetchAllCalculators();
+    // PWA service worker registration (optional)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
     }
 
-    async function fetchAllCalculators() {
-      try {
-        let resp = await fetch('/api/awesome');
-        if (!resp.ok) throw new Error('Could not fetch calculators');
-        calcList = await resp.json();
-        renderCalcList();
-      } catch(err) {
-        console.error('fetchAllCalculators error:', err);
-      }
-    }
+    // We'll store the entire code with the same functional approach
+    let selectedTab = 'lease';
+    let lastChangedTaxField = 'percentage';
+    let lastChangedResidualField = 'percentage';
 
-    function renderCalcList() {
-      const listEl = document.getElementById('calcList');
-      listEl.innerHTML = '';
-      calcList.forEach(calc => {
-        let li = document.createElement('li');
-        li.style.marginBottom = '0.5rem';
-        li.innerHTML = `<a href="#" style="color:#007aff; text-decoration:underline;"
-                          onclick="loadCalculator(${calc.id}); return false;">
-                          Calculator #${calc.id} (${calc.calc_type})
-                        </a>`;
-        listEl.appendChild(li);
-      });
-    }
-
-    async function saveCalculator(e) {
-      e.preventDefault();
+    // The existing calculator logic:
+    // We also have the ability to store data via /api/awesome if we want.
+    async function saveCalculatorToApi() {
+      // Example of how we might POST to /api/awesome
+      // Gather some fields from 'leaseVehiclePrice', etc. 
+      // For demonstration, just a minimal approach:
       const data = {
-        calc_type: document.getElementById('calc_type').value,
-        vehicle_price: document.getElementById('vehicle_price').value,
-        rebates_and_discounts: document.getElementById('rebates_and_discounts').value,
-        down_payment: document.getElementById('down_payment').value,
-        term_months: document.getElementById('term_months').value,
-        residual_percent: document.getElementById('residual_percent').value,
-        residual_value: document.getElementById('residual_value').value,
-        money_factor: document.getElementById('money_factor').value,
-        tax_percent: document.getElementById('tax_percent').value,
-        tax_total: document.getElementById('tax_total').value,
-        capitalize_taxes: document.getElementById('capitalize_taxes').checked,
-        additional_fees: document.getElementById('additional_fees').value,
-        capitalize_fees: document.getElementById('capitalize_fees').checked,
-        maintenance_cost: document.getElementById('maintenance_cost').value,
-        monthly_insurance: document.getElementById('monthly_insurance').value,
-        monthly_fuel: document.getElementById('monthly_fuel').value
+        calc_type: selectedTab,
+        vehicle_price: document.getElementById('leaseVehiclePrice').value || 0
+        // ... similarly map other fields
       };
 
       try {
@@ -202,10 +151,9 @@
         let result = await resp.json();
         if (!resp.ok) {
           console.error('Save error:', result);
-          alert('Failed to save. Check console.');
+          alert('Failed to save. Check console for details.');
         } else {
-          alert('Calculator saved!');
-          fetchAllCalculators();
+          alert('Calculator saved to DB!');
         }
       } catch(err) {
         alert('Error saving. See console.');
@@ -213,33 +161,427 @@
       }
     }
 
-    async function loadCalculator(id) {
-      try {
-        let resp = await fetch('/api/awesome/' + id);
-        if (!resp.ok) throw new Error('Failed to load calculator ' + id);
-        let calc = await resp.json();
-        document.getElementById('calc_type').value = calc.calc_type ?? 'lease';
-        document.getElementById('vehicle_price').value = calc.vehicle_price ?? '';
-        document.getElementById('rebates_and_discounts').value = calc.rebates_and_discounts ?? '';
-        document.getElementById('down_payment').value = calc.down_payment ?? '';
-        document.getElementById('term_months').value = calc.term_months ?? '36';
-        document.getElementById('residual_percent').value = calc.residual_percent ?? '';
-        document.getElementById('residual_value').value = calc.residual_value ?? '';
-        document.getElementById('money_factor').value = calc.money_factor ?? '';
-        document.getElementById('tax_percent').value = calc.tax_percent ?? '';
-        document.getElementById('tax_total').value = calc.tax_total ?? '';
-        document.getElementById('capitalize_taxes').checked = calc.capitalize_taxes ? true : false;
-        document.getElementById('additional_fees').value = calc.additional_fees ?? '';
-        document.getElementById('capitalize_fees').checked = calc.capitalize_fees ? true : false;
-        document.getElementById('maintenance_cost').value = calc.maintenance_cost ?? '';
-        document.getElementById('monthly_insurance').value = calc.monthly_insurance ?? '';
-        document.getElementById('monthly_fuel').value = calc.monthly_fuel ?? '';
-        document.querySelector('[x-data]').__x.$data.tab = 'calc'; // Switch to calc tab
-      } catch(err) {
-        alert('Failed to load. Check console.');
-        console.error(err);
+    function selectTab(tabName) {
+      selectedTab = tabName;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(tabName + 'Tab').classList.add('active');
+      updateFormVisibility();
+      updateCalculations();
+    }
+
+    function updateFormVisibility() {
+      document.getElementById('leaseForm').style.display = selectedTab === 'lease' ? 'block' : 'none';
+      document.getElementById('financingForm').style.display = selectedTab === 'financing' ? 'block' : 'none';
+      document.getElementById('cashForm').style.display = selectedTab === 'cash' ? 'block' : 'none';
+    }
+
+    function leaseTaxPercentageChanged() {
+      lastChangedTaxField = 'percentage';
+      syncLeaseTaxes();
+      updateCalculations();
+    }
+    function leaseTaxTotalChanged() {
+      lastChangedTaxField = 'total';
+      syncLeaseTaxes();
+      updateCalculations();
+    }
+    function residualPercentageChanged() {
+      lastChangedResidualField = 'percentage';
+      syncLeaseResidual();
+      updateCalculations();
+    }
+    function residualTotalChanged() {
+      lastChangedResidualField = 'total';
+      syncLeaseResidual();
+      updateCalculations();
+    }
+    function leaseVehicleOrRebatesChanged() {
+      syncLeaseTaxes();
+      syncLeaseResidual();
+      updateCalculations();
+    }
+
+    function syncLeaseTaxes() {
+      if (selectedTab !== 'lease') return;
+      const vehiclePrice = parseFloat(document.getElementById('leaseVehiclePrice').value) || 0;
+      const rebates = parseFloat(document.getElementById('leaseRebatesAndDiscounts').value) || 0;
+      const negotiatedPrice = vehiclePrice - rebates;
+
+      const taxPercentageInput = document.getElementById('leaseTaxPercentage');
+      const taxTotalInput = document.getElementById('leaseTaxTotal');
+
+      let taxPercentage = parseFloat(taxPercentageInput.value);
+      let taxTotal = parseFloat(taxTotalInput.value);
+
+      if (negotiatedPrice <= 0) {
+        if (lastChangedTaxField === 'percentage') {
+          taxTotalInput.value = '0.00';
+        } else {
+          taxPercentageInput.value = '0.00';
+        }
+        return;
+      }
+
+      if (lastChangedTaxField === 'percentage' && !isNaN(taxPercentage)) {
+        const computedTotal = negotiatedPrice * (taxPercentage / 100);
+        taxTotalInput.value = computedTotal.toFixed(2);
+      } else if (lastChangedTaxField === 'total' && !isNaN(taxTotal)) {
+        const computedPercentage = (taxTotal / negotiatedPrice) * 100;
+        taxPercentageInput.value = computedPercentage.toFixed(2);
       }
     }
+
+    function syncLeaseResidual() {
+      if (selectedTab !== 'lease') return;
+      const vehiclePrice = parseFloat(document.getElementById('leaseVehiclePrice').value) || 0;
+
+      const residualPercentInput = document.getElementById('residualValue');
+      const residualTotalInput = document.getElementById('residualValueTotal');
+
+      let residualPercent = parseFloat(residualPercentInput.value);
+      let residualTotal = parseFloat(residualTotalInput.value);
+
+      if (vehiclePrice <= 0) {
+        if (lastChangedResidualField === 'percentage') {
+          residualTotalInput.value = '0.00';
+        } else {
+          residualPercentInput.value = '0.00';
+        }
+        return;
+      }
+
+      if (lastChangedResidualField === 'percentage' && !isNaN(residualPercent)) {
+        const computedTotal = vehiclePrice * (residualPercent / 100);
+        residualTotalInput.value = computedTotal.toFixed(2);
+      } else if (lastChangedResidualField === 'total' && !isNaN(residualTotal)) {
+        const computedPercentage = (residualTotal / vehiclePrice) * 100;
+        residualPercentInput.value = computedPercentage.toFixed(2);
+      }
+    }
+
+    function calculateGranularCosts(data) {
+      if (data.option === 'lease') {
+        return calculateLeaseCosts(data);
+      } else if (data.option === 'financing') {
+        return {
+          monthlyPayment: "0.00",
+          totalUpfrontCost: "0.00",
+          totalYearlyCost: "0.00",
+          totalMonthlyCost: "0.00"
+        };
+      } else {
+        return calculateCashCosts(data);
+      }
+    }
+
+    function calculateLeaseCosts(data) {
+      const baseVehiclePrice = parseFloat(data.vehiclePrice) || 0;
+      const rebatesAndDiscounts = parseFloat(data.rebatesAndDiscounts) || 0;
+      const downPayment = parseFloat(data.downPayment) || 0;
+      const residualValuePercentage = (parseFloat(data.residualValue) || 0) / 100;
+      const residualValueTotal = parseFloat(data.residualValueTotal) || 0;
+      const useResidualPercent = lastChangedResidualField === 'percentage';
+
+      let residualValue = useResidualPercent ? baseVehiclePrice * residualValuePercentage : residualValueTotal;
+
+      const moneyFactor = parseFloat(data.moneyFactor) || 0;
+      const leaseTerm = parseInt(data.leaseTermMonths) || 1;
+      const negotiatedPrice = baseVehiclePrice - rebatesAndDiscounts;
+      const useTaxPercentage = lastChangedTaxField === 'percentage';
+
+      let totalTaxAmount, taxPercentage;
+      if (useTaxPercentage) {
+        taxPercentage = (parseFloat(data.taxPercentage) || 0) / 100;
+        totalTaxAmount = negotiatedPrice * taxPercentage;
+      } else {
+        totalTaxAmount = parseFloat(data.taxTotal) || 0;
+        taxPercentage = (negotiatedPrice === 0) ? 0 : (totalTaxAmount / negotiatedPrice);
+      }
+
+      let additionalFees = parseFloat(data.additionalFees) || 0;
+      let capCost = negotiatedPrice;
+      if (data.addTaxesToLease) {
+        capCost += totalTaxAmount;
+        totalTaxAmount = 0;
+      }
+
+      if (data.addFeesToLease) {
+        capCost += additionalFees;
+        additionalFees = 0;
+      }
+
+      const netCapCost = capCost - downPayment;
+      const monthlyDepreciation = (netCapCost - residualValue) / leaseTerm;
+      const financeCharge = (netCapCost + residualValue) * moneyFactor;
+      const monthlyPayment = monthlyDepreciation + financeCharge;
+
+      const totalUpfrontCost = downPayment + additionalFees + totalTaxAmount;
+      const totalYearlyCost = (monthlyPayment * 12) + data.maintenanceCost + (data.monthlyInsurance * 12) + (data.monthlyFuel * 12);
+      const totalMonthlyCost = monthlyPayment + (data.maintenanceCost / 12) + data.monthlyInsurance + data.monthlyFuel;
+
+      const aprEquivalent = (moneyFactor * 2400).toFixed(2) + '%';
+      const totalDepreciation = (netCapCost - residualValue).toFixed(2);
+      const totalFinanceCharges = (financeCharge * leaseTerm).toFixed(2);
+      const totalLeasePayments = (monthlyPayment * leaseTerm).toFixed(2);
+
+      return {
+        monthlyPayment: monthlyPayment.toFixed(2),
+        totalUpfrontCost: totalUpfrontCost.toFixed(2),
+        totalYearlyCost: totalYearlyCost.toFixed(2),
+        totalMonthlyCost: totalMonthlyCost.toFixed(2),
+        aprEquivalent: aprEquivalent,
+        negotiatedPrice: negotiatedPrice.toFixed(2),
+        netCapCost: netCapCost.toFixed(2),
+        residualValue: residualValue.toFixed(2),
+        monthlyDepreciation: monthlyDepreciation.toFixed(2),
+        monthlyFinanceCharge: financeCharge.toFixed(2),
+        totalDepreciation: totalDepreciation,
+        totalFinanceCharges: totalFinanceCharges,
+        totalLeasePayments: totalLeasePayments
+      };
+    }
+
+    function calculateCashCosts(data) {
+      let vehiclePrice = parseFloat(data.vehiclePrice) || 0;
+      const taxPercentage = (parseFloat(data.taxPercentage) || 0) / 100;
+      let additionalFees = parseFloat(data.additionalFees) || 0;
+      const maintenanceCost = parseFloat(data.maintenanceCost) || 0;
+      const monthlyInsurance = parseFloat(data.monthlyInsurance) || 0;
+      const monthlyFuel = parseFloat(data.monthlyFuel) || 0;
+
+      let taxes = vehiclePrice * taxPercentage;
+      if (data.addTaxesToCash) {
+        vehiclePrice += taxes;
+        taxes = 0;
+      }
+
+      if (data.addFeesToCash) {
+        vehiclePrice += additionalFees;
+        additionalFees = 0;
+      }
+
+      const totalUpfrontCost = vehiclePrice + additionalFees + taxes;
+      const totalYearlyCost = maintenanceCost + (monthlyInsurance * 12) + (monthlyFuel * 12);
+      const totalMonthlyCost = (maintenanceCost / 12) + monthlyInsurance + monthlyFuel;
+
+      return {
+        totalLoanCost: vehiclePrice.toFixed(2),
+        totalUpfrontCost: totalUpfrontCost.toFixed(2),
+        totalYearlyCost: totalYearlyCost.toFixed(2),
+        totalMonthlyCost: totalMonthlyCost.toFixed(2)
+      };
+    }
+
+    function updateCalculations() {
+      let data = {};
+      if (selectedTab === 'lease') {
+        data = {
+          vehiclePrice: parseFloat(document.getElementById('leaseVehiclePrice').value) || 0,
+          rebatesAndDiscounts: parseFloat(document.getElementById('leaseRebatesAndDiscounts').value) || 0,
+          downPayment: parseFloat(document.getElementById('leaseDownPayment').value) || 0,
+          leaseTermMonths: parseInt(document.getElementById('leaseTermMonths').value) || 0,
+          taxPercentage: parseFloat(document.getElementById('leaseTaxPercentage').value) || 0,
+          taxTotal: parseFloat(document.getElementById('leaseTaxTotal').value) || 0,
+          addTaxesToLease: document.getElementById('leaseAddTaxesToLease').checked,
+          additionalFees: parseFloat(document.getElementById('leaseAdditionalFees').value) || 0,
+          addFeesToLease: document.getElementById('leaseAddFeesToLease').checked,
+          residualValue: parseFloat(document.getElementById('residualValue').value) || 0,
+          residualValueTotal: parseFloat(document.getElementById('residualValueTotal').value) || 0,
+          moneyFactor: parseFloat(document.getElementById('moneyFactor').value) || 0,
+          maintenanceCost: parseFloat(document.getElementById('leaseMaintenanceCost').value) || 0,
+          monthlyInsurance: parseFloat(document.getElementById('leaseMonthlyInsurance').value) || 0,
+          monthlyFuel: parseFloat(document.getElementById('leaseMonthlyFuel').value) || 0,
+          option: 'lease'
+        };
+      } else if (selectedTab === 'financing') {
+        data = { option: 'financing' };
+      } else {
+        data = {
+          vehiclePrice: parseFloat(document.getElementById('cashVehiclePrice').value) || 0,
+          taxPercentage: parseFloat(document.getElementById('cashTaxPercentage').value) || 0,
+          addTaxesToCash: document.getElementById('cashAddTaxesToCash').checked,
+          additionalFees: parseFloat(document.getElementById('cashAdditionalFees').value) || 0,
+          addFeesToCash: document.getElementById('cashAddFeesToCash').checked,
+          maintenanceCost: parseFloat(document.getElementById('cashMaintenanceCost').value) || 0,
+          monthlyInsurance: parseFloat(document.getElementById('cashMonthlyInsurance').value) || 0,
+          monthlyFuel: parseFloat(document.getElementById('cashMonthlyFuel').value) || 0,
+          option: 'cash'
+        };
+      }
+
+      const calculations = calculateGranularCosts(data);
+      updateUI(calculations);
+    }
+
+    function updateUI(calculations) {
+      if (selectedTab === 'lease') {
+        document.getElementById('monthlyPayment').innerText = `Monthly Lease Payment: $${calculations.monthlyPayment}`;
+      } else if (selectedTab === 'financing') {
+        document.getElementById('monthlyPayment').innerText = `Monthly Financing Payment: $${calculations.monthlyPayment}`;
+      } else {
+        document.getElementById('monthlyPayment').innerText = `Total Cost (Cash): $${calculations.totalLoanCost}`;
+      }
+
+      document.getElementById('totalUpfrontCost').innerText = `Total Upfront Cost: $${calculations.totalUpfrontCost}`;
+      document.getElementById('totalYearlyCost').innerText = `Total Yearly All-Inclusive Cost: $${calculations.totalYearlyCost}`;
+      document.getElementById('totalMonthlyCost').innerText = `Total Monthly Cost: $${calculations.totalMonthlyCost}`;
+
+      if (selectedTab === 'lease') {
+        document.getElementById('aprEquivalent').innerText = `APR Equivalent of Money Factor: ${calculations.aprEquivalent}`;
+        document.getElementById('negotiatedPriceOutput').innerText = `Negotiated Price: $${calculations.negotiatedPrice}`;
+        document.getElementById('netCapCostOutput').innerText = `Net Capitalized Cost: $${calculations.netCapCost}`;
+        document.getElementById('residualValueOutput').innerText = `Residual Value: $${calculations.residualValue}`;
+        document.getElementById('monthlyDepreciationOutput').innerText = `Monthly Depreciation: $${calculations.monthlyDepreciation}`;
+        document.getElementById('monthlyFinanceChargeOutput').innerText = `Monthly Finance Charge: $${calculations.monthlyFinanceCharge}`;
+        document.getElementById('totalDepreciationOutput').innerText = `Total Depreciation: $${calculations.totalDepreciation}`;
+        document.getElementById('totalFinanceChargesOutput').innerText = `Total Finance Charges: $${calculations.totalFinanceCharges}`;
+        document.getElementById('totalLeasePaymentsOutput').innerText = `Total Lease Payments: $${calculations.totalLeasePayments}`;
+        document.getElementById('leaseExtraInfo').style.display = 'block';
+      } else {
+        document.getElementById('leaseExtraInfo').style.display = 'none';
+      }
+
+      // Color coding
+      const monthlyPaymentEl = document.getElementById('monthlyPayment');
+      monthlyPaymentEl.className = 'cost-indicator';
+      if ((selectedTab === 'lease' || selectedTab === 'financing') && calculations.monthlyPayment) {
+        const monthlyPaymentValue = parseFloat(calculations.monthlyPayment);
+        if (monthlyPaymentValue < 400) {
+          monthlyPaymentEl.classList.add('green');
+        } else if (monthlyPaymentValue < 700) {
+          monthlyPaymentEl.classList.add('yellow');
+        } else {
+          monthlyPaymentEl.classList.add('red');
+        }
+      }
+
+      document.getElementById('results').classList.remove('hidden');
+    }
   </script>
+</head>
+<body>
+  <div class="app-container">
+    <div class="app-header">Fleet Ownership Cost Analyzer</div>
+    <div class="content">
+
+      <!-- Input Section (Calculator forms) -->
+      <div class="card" id="inputSection">
+        <div class="tab-bar">
+          <div id="leaseTab" class="tab active" onclick="selectTab('lease')">Lease</div>
+          <div id="financingTab" class="tab" onclick="selectTab('financing')">Financing</div>
+          <div id="cashTab" class="tab" onclick="selectTab('cash')">Cash</div>
+        </div>
+
+        <!-- Lease Form -->
+        <div id="leaseForm">
+          <label>Vehicle Price ($):
+            <input type="number" id="leaseVehiclePrice" oninput="leaseVehicleOrRebatesChanged()">
+          </label>
+          <label>Total Rebates and Discounts ($):
+            <input type="number" id="leaseRebatesAndDiscounts" oninput="leaseVehicleOrRebatesChanged()">
+          </label>
+          <label>Down Payment ($):
+            <input type="number" id="leaseDownPayment" onchange="updateCalculations()">
+          </label>
+          <label>Lease Term (Months):
+            <input type="number" id="leaseTermMonths" onchange="updateCalculations()">
+          </label>
+          <div class="flex-row">
+            <span class="small-label">Residual (%):</span>
+            <input type="number" id="residualValue" oninput="residualPercentageChanged()" style="width:80px;">
+            <span class="small-label">Residual ($):</span>
+            <input type="number" id="residualValueTotal" oninput="residualTotalChanged()" style="width:80px;">
+          </div>
+          <label>Money Factor:
+            <input type="number" id="moneyFactor" onchange="updateCalculations()">
+          </label>
+          <div class="flex-row">
+            <span class="small-label">Taxes (%):</span>
+            <input type="number" id="leaseTaxPercentage" oninput="leaseTaxPercentageChanged()" style="width:80px;">
+            <span class="small-label">Tax ($):</span>
+            <input type="number" id="leaseTaxTotal" oninput="leaseTaxTotalChanged()" style="width:80px;">
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="leaseAddTaxesToLease" onchange="updateCalculations()"> Capitalize Taxes into Lease
+          </label>
+          <label>Additional Fees ($):
+            <input type="number" id="leaseAdditionalFees" onchange="updateCalculations()">
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="leaseAddFeesToLease" onchange="updateCalculations()"> Capitalize Fees into Lease
+          </label>
+          <label>Yearly Maintenance ($):
+            <input type="number" id="leaseMaintenanceCost" onchange="updateCalculations()">
+          </label>
+          <label>Monthly Insurance ($):
+            <input type="number" id="leaseMonthlyInsurance" onchange="updateCalculations()">
+          </label>
+          <label>Monthly Fuel/Electric ($):
+            <input type="number" id="leaseMonthlyFuel" onchange="updateCalculations()">
+          </label>
+
+          <!-- Example button to store this lease data in /api/awesome -->
+          <button onclick="saveCalculatorToApi()" style="margin-top:1rem;">Save This to /api/awesome</button>
+        </div>
+
+        <!-- Financing Form -->
+        <div id="financingForm" style="display:none;">
+          <p>Financing form (work in progress)</p>
+        </div>
+
+        <!-- Cash Form -->
+        <div id="cashForm" style="display:none;">
+          <label>Vehicle Price ($):
+            <input type="number" id="cashVehiclePrice" onchange="updateCalculations()">
+          </label>
+          <label>Taxes (%):
+            <input type="number" id="cashTaxPercentage" onchange="updateCalculations()">
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="cashAddTaxesToCash" onchange="updateCalculations()"> Add Taxes to Vehicle Price
+          </label>
+          <label>Additional Fees ($):
+            <input type="number" id="cashAdditionalFees" onchange="updateCalculations()">
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="cashAddFeesToCash" onchange="updateCalculations()"> Add Fees to Vehicle Price
+          </label>
+          <label>Yearly Maintenance ($):
+            <input type="number" id="cashMaintenanceCost" onchange="updateCalculations()">
+          </label>
+          <label>Monthly Insurance ($):
+            <input type="number" id="cashMonthlyInsurance" onchange="updateCalculations()">
+          </label>
+          <label>Monthly Fuel/Electric ($):
+            <input type="number" id="cashMonthlyFuel" onchange="updateCalculations()">
+          </label>
+
+          <!-- Example button to store this cash data in /api/awesome -->
+          <button onclick="saveCalculatorToApi()" style="margin-top:1rem;">Save Cash Calc to /api/awesome</button>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div class="card results-section hidden" id="results">
+        <h2>Ownership Cost Breakdown</h2>
+        <div id="monthlyPayment" class="cost-indicator"></div>
+        <div id="totalUpfrontCost" class="detail"></div>
+        <div id="totalYearlyCost" class="detail"></div>
+        <div id="totalMonthlyCost" class="detail"></div>
+        <div id="leaseExtraInfo" style="display: none;">
+          <h3 style="margin-top:1rem; margin-bottom:0.5rem;">Additional Lease Details</h3>
+          <div id="aprEquivalent" class="detail"></div>
+          <div id="negotiatedPriceOutput" class="detail"></div>
+          <div id="netCapCostOutput" class="detail"></div>
+          <div id="residualValueOutput" class="detail"></div>
+          <div id="monthlyDepreciationOutput" class="detail"></div>
+          <div id="monthlyFinanceChargeOutput" class="detail"></div>
+          <div id="totalDepreciationOutput" class="detail"></div>
+          <div id="totalFinanceChargesOutput" class="detail"></div>
+          <div id="totalLeasePaymentsOutput" class="detail"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
