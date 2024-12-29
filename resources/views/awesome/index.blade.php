@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ currentView:'calculator', calcList:[] }">
+<html lang="en" x-data="appData()">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
@@ -13,14 +13,14 @@
 
   <style>
     body {
-      margin: 0;
-      background: #1e1e2f;
-      color: #eee;
-      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;
-      font-size: 16px;
+      margin:0;
+      background:#1e1e2f;
+      color:#eee;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;
+      font-size:16px;
     }
     .top-nav {
-      background: #2a2a3c; color: #fff; display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem;
+      background:#2a2a3c; color:#fff; display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem;
     }
     .top-nav .nav-left button {
       background:#444; color:#bbb; border:none; padding:0.5rem 1rem; margin-right:0.5rem; border-radius:6px; cursor:pointer;
@@ -54,11 +54,37 @@
       navigator.serviceWorker.register('/service-worker.js');
     }
 
-    /////////////////////////////////////////////////////////////////////////////
-    // OLD WORKING CALCULATOR LOGIC (Lease, Cash, etc.)
-    /////////////////////////////////////////////////////////////////////////////
+    // 1) Alpine appData:
+    function appData(){
+      return {
+        currentView:'calculator',
+        calcList:[],
 
-    // Global variables
+        // Called on the "Saved" page to refresh the list
+        async fetchCalcList(){
+          try{
+            let resp=await fetch('/api/awesome');
+            if(!resp.ok) throw new Error('Failed to fetch list');
+            let data=await resp.json();
+            this.calcList=data;
+          } catch(err){
+            console.error('fetchCalcList error:',err);
+            alert('Could not fetch. See console.');
+          }
+        },
+
+        // We can call the global loadCalculatorFromList
+        // from an Alpine snippet. It's a global, so just do that:
+        loadFromList(id){
+          loadCalculatorFromList(id);
+        }
+      }
+    }
+
+
+    ///////////////////////////
+    // OLD WORKING CALCULATOR
+    ///////////////////////////
     let selectedTab='lease';
     let lastChangedTaxField='percentage';
     let lastChangedResidualField='percentage';
@@ -101,16 +127,16 @@
       syncLeaseResidual();
       updateCalculations();
     }
+
     function syncLeaseTaxes(){
-      // The old code for computing taxes in the lease scenario
-      // ...
+      // your logic for lease taxes
     }
     function syncLeaseResidual(){
-      // The old code for computing residual in the lease scenario
-      // ...
+      // your logic for residual
     }
+
     function calculateLeaseCosts(data){
-      // your old comprehensive logic for lease
+      // your old lease logic
       return {
         monthlyPayment:'0.00',
         totalUpfrontCost:'0.00',
@@ -128,7 +154,7 @@
       };
     }
     function calculateCashCosts(data){
-      // your old code for cash
+      // your old cash logic
       return {
         totalLoanCost:'0.00',
         totalUpfrontCost:'0.00',
@@ -140,7 +166,6 @@
       if(data.option==='lease'){
         return calculateLeaseCosts(data);
       } else if(data.option==='financing'){
-        // placeholder
         return {
           monthlyPayment:'0.00',
           totalUpfrontCost:'0.00',
@@ -151,11 +176,12 @@
         return calculateCashCosts(data);
       }
     }
+
     function updateCalculations(){
       let data={};
       if(selectedTab==='lease'){
         data.option='lease';
-        // gather e.g. data.vehiclePrice from #leaseVehiclePrice
+        // gather e.g. data.vehiclePrice = parseFloat(...)
       } else if(selectedTab==='financing'){
         data.option='financing';
       } else {
@@ -165,14 +191,11 @@
       updateUI(result);
     }
     function updateUI(calc){
-      // sets the results, color codes the monthlyPayment, etc.
+      // sets monthlyPayment, totalUpfrontCost, etc.
       document.getElementById('results').classList.remove('hidden');
     }
 
-    /////////////////////////////////////////////////////////////////////////////
-    // SAVE / LOAD FROM /api/awesome
-    /////////////////////////////////////////////////////////////////////////////
-
+    // Minimal example saving to /api/awesome
     async function saveCalculatorToApi(){
       let calc_type=selectedTab;
       let vehicle_price=0;
@@ -181,7 +204,6 @@
       } else if(calc_type==='cash'){
         vehicle_price=document.getElementById('cashVehiclePrice').value||0;
       }
-      // you could gather more fields if desired
       const data={ calc_type, vehicle_price };
       try {
         let resp=await fetch('/api/awesome',{
@@ -196,7 +218,7 @@
         let result=await resp.json();
         if(!resp.ok){
           console.error('Save error:',result);
-          alert('Failed to save. Check console.');
+          alert('Failed to save. See console.');
         } else {
           alert('Saved to /api/awesome');
         }
@@ -206,32 +228,17 @@
       }
     }
 
-    // We'll fetch the list and put it into Alpine's calcList
-    async function fetchCalcList(){
-      try {
-        let resp=await fetch('/api/awesome');
-        if(!resp.ok) throw new Error('Failed to fetch list');
-        let data=await resp.json();
-        // store in Alpine's calcList
-        document.querySelector('[x-data]').__x.$data.calcList=data;
-      } catch(err){
-        console.error('fetchCalcList error:',err);
-        alert('Could not fetch. See console.');
-      }
-    }
-
+    // loadCalculatorFromList is global, but we?ll call it from Alpine
     async function loadCalculatorFromList(id){
       try {
         let resp=await fetch('/api/awesome/'+id);
         if(!resp.ok) throw new Error('Load error:'+id);
         let calc=await resp.json();
-        // interpret calc_type => selectedTab
         selectedTab=calc.calc_type||'lease';
         document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
         document.getElementById(selectedTab+'Tab').classList.add('active');
         updateFormVisibility();
-
-        // fill fields if 'lease', 'cash', etc.
+        // fill fields if lease, cash, etc.
         if(selectedTab==='lease'){
           document.getElementById('leaseVehiclePrice').value=calc.vehicle_price||'';
           document.getElementById('leaseRebatesAndDiscounts').value=calc.rebates_and_discounts||'';
@@ -248,7 +255,7 @@
           document.getElementById('leaseMaintenanceCost').value=calc.maintenance_cost||'';
           document.getElementById('leaseMonthlyInsurance').value=calc.monthly_insurance||'';
           document.getElementById('leaseMonthlyFuel').value=calc.monthly_fuel||'';
-        } else if (selectedTab==='cash'){
+        } else if(selectedTab==='cash'){
           document.getElementById('cashVehiclePrice').value=calc.vehicle_price||'';
           document.getElementById('cashTaxPercentage').value=calc.tax_percent||'';
           document.getElementById('cashAddTaxesToCash').checked=calc.capitalize_taxes?true:false;
@@ -258,10 +265,9 @@
           document.getElementById('cashMonthlyInsurance').value=calc.monthly_insurance||'';
           document.getElementById('cashMonthlyFuel').value=calc.monthly_fuel||'';
         }
-        // recalc
         updateCalculations();
-        // switch Alpine page => "calculator"
-        document.querySelector('[x-data]').__x.$data.currentView='calculator';
+        // switch to "calculator" page in Alpine
+        document.querySelector('html').__x.$data.currentView='calculator';
       } catch(err){
         console.error('loadCalculatorFromList error:',err);
         alert('Load error. See console.');
@@ -272,7 +278,6 @@
 <body>
   <div class="top-nav">
     <div class="nav-left">
-      <!-- Switch page via Alpine: 'calculator' vs 'saved' -->
       <button :class="{ 'active': currentView==='calculator' }" @click="currentView='calculator'">Calculator</button>
       <button :class="{ 'active': currentView==='saved' }" @click="currentView='saved'; fetchCalcList()">Saved Calculators</button>
     </div>
@@ -341,7 +346,7 @@
 
         <!-- FINANCING FORM -->
         <div id="financingForm" style="display:none;">
-          <p style="color:#ccc;">Financing form (TBD)</p>
+          <p style="color:#ccc;">Financing form (placeholder)</p>
         </div>
 
         <!-- CASH FORM -->
@@ -405,7 +410,7 @@
           <template x-for="calc in calcList" :key="calc.id">
             <li style="margin:0.5rem 0;">
               <a href="#" style="color:#66afff; text-decoration:underline;"
-                 @click.prevent="loadCalculatorFromList(calc.id)">
+                 @click.prevent="loadFromList(calc.id)">
                 Calculator #<span x-text="calc.id"></span> (<span x-text="calc.calc_type"></span>)
               </a>
             </li>
