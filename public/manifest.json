@@ -1,0 +1,9 @@
+{
+  "name": "Awesome Fleet Calculator",
+  "short_name": "FleetCalc",
+  "start_url": "/awesome",
+  "display": "standalone",
+  "background_color": "#1e1e2f",
+  "theme_color": "#1e1e2f",
+  "description": "A PWA manifest for our Fleet Ownership Cost Analyzer app."
+}
