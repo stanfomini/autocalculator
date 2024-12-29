@@ -9,6 +9,5 @@
   <p>Type: {{ $calc->calc_type }}</p>
   <p>Vehicle Price: {{ $calc->vehicle_price }}</p>
   <p>Rebates & Discounts: {{ $calc->rebates_and_discounts }}</p>
-  <!-- Additional fields if desired -->
 </body>
 </html>
