@@ -15,13 +15,10 @@ class AwesomeCalcApiController extends Controller
 
     public function store(Request $request)
     {
-        // Minimal validation
         $validated = $request->validate([
             'calc_type' => 'in:lease,financing,cash',
             'vehicle_price' => 'numeric',
         ]);
-
-        // Store using mass assignment
         $calc = AwesomeCalc::create($request->all());
         return response()->json($calc, 201);
     }
@@ -37,7 +34,6 @@ class AwesomeCalcApiController extends Controller
             'calc_type' => 'in:lease,financing,cash',
             'vehicle_price' => 'numeric',
         ]);
-
         $awesome->update($request->all());
         return $awesome;
     }
