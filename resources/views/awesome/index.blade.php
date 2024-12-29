@@ -4,24 +4,25 @@
   <meta charset="UTF-8">
   <title>Awesome Calculator SPA</title>
 
-  <!-- Minimal Alpine for tab switching only -->
+  <!-- Alpine for tab switching only -->
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <!-- If removing CSRF, do so. Otherwise: -->
+  <!-- Optional CSRF if needed -->
   <meta name="csrf-token" content="{{ csrf_token() }}">
+
   @vite(['resources/css/app.css','resources/js/app.js'])
 
   <style>
     body {
       margin: 0;
       padding: 1rem;
-      background-color: #1e1e2f;
-      color: #eee;
+      background-color: #f2f2f2; /* Light background */
+      color: #000; /* Black text */
       font-family: sans-serif;
     }
     .tab-button {
-      background-color: #333;
-      color: #aaa;
+      background-color: #ddd;
+      color: #333;
       padding: 0.5rem 1rem;
       margin-right: 0.5rem;
       border-radius: 0.25rem;
@@ -33,19 +34,21 @@
       color: #fff;
     }
     .card {
-      background-color: #2a2a3c;
+      background-color: #fff;
+      border: 1px solid #ccc;
       border-radius: 8px;
       padding: 1rem;
       margin-bottom: 1rem;
     }
     input, select {
-      background-color: #333;
-      border: 1px solid #555;
-      color: #fff;
+      background-color: #fff;
+      border: 1px solid #999;
+      color: #000;
       padding: 0.5rem;
       border-radius: 4px;
       width: 100%;
       box-sizing: border-box;
+      margin-bottom: 0.5rem;
     }
     .btn-primary {
       background-color: #007aff;
@@ -62,92 +65,74 @@
 </head>
 <body onload="initApp()">
 
-  <h1 class="text-2xl font-bold mb-4">Awesome Calculator SPA</h1>
+  <h1 style="font-size:1.5rem; margin-bottom:1rem;">Awesome Calculator SPA</h1>
 
-  <div class="flex gap-2 mb-4">
-    <button class="tab-button" :class="{ 'active': tab==='calc' }" @click="tab='calc'">
-      Calculator
-    </button>
-    <button class="tab-button" :class="{ 'active': tab==='list' }" @click="tab='list'">
-      List of Calculators
-    </button>
+  <div style="margin-bottom:1rem;">
+    <button class="tab-button" :class="{ 'active': tab==='calc' }" @click="tab='calc'">Calculator</button>
+    <button class="tab-button" :class="{ 'active': tab==='list' }" @click="tab='list'">List of Calculators</button>
   </div>
 
+  <!-- Calculator Card -->
   <div class="card" x-show="tab==='calc'">
-    <h2 class="text-xl font-semibold mb-2">Finance/Lease Calculator</h2>
+    <h2 style="font-size:1.25rem; margin-bottom:0.5rem;">Finance/Lease Calculator</h2>
     <form onsubmit="saveCalculator(event)">
-      <div class="mb-2">
-        <label>Calculation Type</label>
-        <select id="calc_type">
-          <option value="lease">Lease</option>
-          <option value="financing">Financing</option>
-          <option value="cash">Cash</option>
-        </select>
-      </div>
-      <div class="mb-2">
-        <label>Vehicle Price</label>
-        <input type="number" step="0.01" id="vehicle_price">
-      </div>
-      <div class="mb-2">
-        <label>Rebates & Discounts</label>
-        <input type="number" step="0.01" id="rebates_and_discounts">
-      </div>
-      <div class="mb-2">
-        <label>Down Payment</label>
-        <input type="number" step="0.01" id="down_payment">
-      </div>
-      <div class="mb-2">
-        <label>Term (Months)</label>
-        <input type="number" id="term_months" value="36">
-      </div>
-      <div class="mb-2">
-        <label>Residual (%)</label>
-        <input type="number" step="0.01" id="residual_percent">
-      </div>
-      <div class="mb-2">
-        <label>Residual Value ($)</label>
-        <input type="number" step="0.01" id="residual_value">
-      </div>
-      <div class="mb-2">
-        <label>Money Factor</label>
-        <input type="number" step="0.00001" id="money_factor">
-      </div>
-      <div class="mb-2">
-        <label>Tax (%)</label>
-        <input type="number" step="0.01" id="tax_percent">
-      </div>
-      <div class="mb-2">
-        <label>Tax (Total $)</label>
-        <input type="number" step="0.01" id="tax_total">
-      </div>
-      <div class="mb-2">
-        <label><input type="checkbox" id="capitalize_taxes"> Capitalize Taxes</label>
-      </div>
-      <div class="mb-2">
-        <label>Additional Fees ($)</label>
-        <input type="number" step="0.01" id="additional_fees">
-      </div>
-      <div class="mb-2">
-        <label><input type="checkbox" id="capitalize_fees"> Capitalize Fees</label>
-      </div>
-      <div class="mb-2">
-        <label>Yearly Maintenance ($)</label>
-        <input type="number" step="0.01" id="maintenance_cost">
-      </div>
-      <div class="mb-2">
-        <label>Monthly Insurance ($)</label>
-        <input type="number" step="0.01" id="monthly_insurance">
-      </div>
-      <div class="mb-2">
-        <label>Monthly Fuel/Electric ($)</label>
-        <input type="number" step="0.01" id="monthly_fuel">
-      </div>
-      <button type="submit" class="btn-primary mt-2">Save Calculator</button>
+      <label>Calculation Type</label>
+      <select id="calc_type">
+        <option value="lease">Lease</option>
+        <option value="financing">Financing</option>
+        <option value="cash">Cash</option>
+      </select>
+
+      <label>Vehicle Price</label>
+      <input type="number" step="0.01" id="vehicle_price">
+
+      <label>Rebates & Discounts</label>
+      <input type="number" step="0.01" id="rebates_and_discounts">
+
+      <label>Down Payment</label>
+      <input type="number" step="0.01" id="down_payment">
+
+      <label>Term (Months)</label>
+      <input type="number" id="term_months" value="36">
+
+      <label>Residual (%)</label>
+      <input type="number" step="0.01" id="residual_percent">
+
+      <label>Residual Value ($)</label>
+      <input type="number" step="0.01" id="residual_value">
+
+      <label>Money Factor</label>
+      <input type="number" step="0.00001" id="money_factor">
+
+      <label>Tax (%)</label>
+      <input type="number" step="0.01" id="tax_percent">
+
+      <label>Tax (Total $)</label>
+      <input type="number" step="0.01" id="tax_total">
+
+      <label><input type="checkbox" id="capitalize_taxes"> Capitalize Taxes</label>
+
+      <label>Additional Fees ($)</label>
+      <input type="number" step="0.01" id="additional_fees">
+
+      <label><input type="checkbox" id="capitalize_fees"> Capitalize Fees</label>
+
+      <label>Yearly Maintenance ($)</label>
+      <input type="number" step="0.01" id="maintenance_cost">
+
+      <label>Monthly Insurance ($)</label>
+      <input type="number" step="0.01" id="monthly_insurance">
+
+      <label>Monthly Fuel/Electric ($)</label>
+      <input type="number" step="0.01" id="monthly_fuel">
+
+      <button type="submit" class="btn-primary" style="margin-top:0.5rem;">Save Calculator</button>
     </form>
   </div>
 
+  <!-- Listing Card -->
   <div class="card" x-show="tab==='list'">
-    <h2 class="text-xl font-semibold mb-2">List of Saved Calculators</h2>
+    <h2 style="font-size:1.25rem; margin-bottom:0.5rem;">List of Saved Calculators</h2>
     <ul id="calcList"></ul>
   </div>
 
@@ -174,7 +159,9 @@
       listEl.innerHTML = '';
       calcList.forEach(calc => {
         let li = document.createElement('li');
-        li.innerHTML = `<a href="#" style="color:#4af" onclick="loadCalculator(${calc.id})">
+        li.style.marginBottom = '0.5rem';
+        li.innerHTML = `<a href="#" style="color:#007aff; text-decoration:underline;"
+                          onclick="loadCalculator(${calc.id}); return false;">
                           Calculator #${calc.id} (${calc.calc_type})
                         </a>`;
         listEl.appendChild(li);
@@ -208,7 +195,6 @@
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            // remove or comment out if you don't need CSRF
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
           },
           body: JSON.stringify(data)
@@ -232,24 +218,23 @@
         let resp = await fetch('/api/awesome/' + id);
         if (!resp.ok) throw new Error('Failed to load calculator ' + id);
         let calc = await resp.json();
-        // Fill the form
-        document.getElementById('calc_type').value = calc.calc_type;
-        document.getElementById('vehicle_price').value = calc.vehicle_price;
-        document.getElementById('rebates_and_discounts').value = calc.rebates_and_discounts;
-        document.getElementById('down_payment').value = calc.down_payment;
-        document.getElementById('term_months').value = calc.term_months;
-        document.getElementById('residual_percent').value = calc.residual_percent;
-        document.getElementById('residual_value').value = calc.residual_value;
-        document.getElementById('money_factor').value = calc.money_factor;
-        document.getElementById('tax_percent').value = calc.tax_percent;
-        document.getElementById('tax_total').value = calc.tax_total;
-        document.getElementById('capitalize_taxes').checked = calc.capitalize_taxes;
-        document.getElementById('additional_fees').value = calc.additional_fees;
-        document.getElementById('capitalize_fees').checked = calc.capitalize_fees;
-        document.getElementById('maintenance_cost').value = calc.maintenance_cost;
-        document.getElementById('monthly_insurance').value = calc.monthly_insurance;
-        document.getElementById('monthly_fuel').value = calc.monthly_fuel;
-        document.querySelector('[x-data]').__x.$data.tab = 'calc'; // switch tab
+        document.getElementById('calc_type').value = calc.calc_type ?? 'lease';
+        document.getElementById('vehicle_price').value = calc.vehicle_price ?? '';
+        document.getElementById('rebates_and_discounts').value = calc.rebates_and_discounts ?? '';
+        document.getElementById('down_payment').value = calc.down_payment ?? '';
+        document.getElementById('term_months').value = calc.term_months ?? '36';
+        document.getElementById('residual_percent').value = calc.residual_percent ?? '';
+        document.getElementById('residual_value').value = calc.residual_value ?? '';
+        document.getElementById('money_factor').value = calc.money_factor ?? '';
+        document.getElementById('tax_percent').value = calc.tax_percent ?? '';
+        document.getElementById('tax_total').value = calc.tax_total ?? '';
+        document.getElementById('capitalize_taxes').checked = calc.capitalize_taxes ? true : false;
+        document.getElementById('additional_fees').value = calc.additional_fees ?? '';
+        document.getElementById('capitalize_fees').checked = calc.capitalize_fees ? true : false;
+        document.getElementById('maintenance_cost').value = calc.maintenance_cost ?? '';
+        document.getElementById('monthly_insurance').value = calc.monthly_insurance ?? '';
+        document.getElementById('monthly_fuel').value = calc.monthly_fuel ?? '';
+        document.querySelector('[x-data]').__x.$data.tab = 'calc'; // Switch to calc tab
       } catch(err) {
         alert('Failed to load. Check console.');
         console.error(err);
