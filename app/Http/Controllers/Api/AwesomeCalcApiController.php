@@ -15,7 +15,7 @@ class AwesomeCalcApiController extends Controller
 
     public function store(Request $request)
     {
-        // Minimal validation for demonstration
+        // Minimal validation
         $validated = $request->validate([
             'calc_type' => 'in:lease,financing,cash',
             'vehicle_price' => 'numeric',
