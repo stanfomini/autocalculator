@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\AwesomeCalcApiController;
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Our CRUD routes for the "awesome" calculators.
+| CRUD routes for the "awesome" calculators.
 |
 */
 
