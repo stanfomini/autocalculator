@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('awesome_calcs', function (Blueprint $table) {
             $table->id();
             $table->string('calc_type')->default('lease');
+            // large decimals to prevent "out of range" errors
             $table->decimal('vehicle_price', 18, 2)->default(0);
             $table->decimal('rebates_and_discounts', 18, 2)->default(0);
             $table->decimal('down_payment', 18, 2)->default(0);
