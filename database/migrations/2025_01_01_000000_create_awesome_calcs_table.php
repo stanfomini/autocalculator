@@ -26,6 +26,11 @@ return new class extends Migration
             $table->decimal('maintenance_cost', 18, 2)->default(0);
             $table->decimal('monthly_insurance', 18, 2)->default(0);
             $table->decimal('monthly_fuel', 18, 2)->default(0);
+
+            // For financing
+            $table->decimal('annual_interest_rate', 10, 3)->nullable();  // e.g. 4.50
+            $table->boolean('taxes_and_fees_financed')->default(false);
+
             $table->timestamps();
         });
     }
