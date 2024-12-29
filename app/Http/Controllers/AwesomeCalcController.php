@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 
 class AwesomeCalcController extends Controller
 {
-    // Return the single-page Blade view at /awesome
     public function spaIndex()
     {
+        // Returns the main SPA blade
         return view('awesome.index');
     }
 }
