@@ -7,7 +7,7 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1e1e2f">
 
-  <!-- Alpine for toggling 'calculator' vs 'saved' pages ONLY -->
+  <!-- Alpine for only toggling pages / storing calcList -->
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -35,9 +35,7 @@
     input[type="number"], input[type="text"] {
       background:#333; color:#fff; border:1px solid #666; border-radius:6px; padding:0.75rem; font-size:1rem; width:100%;
     }
-    .tab {
-      background:#444; color:#bbb; padding:0.5rem 1rem; margin-right:0.5rem; border-radius:6px; cursor:pointer; border:none;
-    }
+    .tab { background:#444; color:#bbb; padding:0.5rem 1rem; margin-right:0.5rem; border-radius:6px; cursor:pointer; border:none; }
     .tab.active { background:#007aff; color:#fff; }
     .hidden { display:none; }
     .cost-indicator {
@@ -46,62 +44,71 @@
     .green { background-color:#4caf50; color:#fff; }
     .yellow { background-color:#ffeb3b; color:#000; }
     .red { background-color:#f44336; color:#fff; }
+    .flex-row { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; }
+    .small-label { color:#eee; font-size:0.9rem; font-weight:500; }
+    .checkbox-label { display:flex; align-items:center; gap:0.5rem; }
   </style>
 
   <script>
-    // Register the Service Worker
+    /////////////////////////////////
+    // Service Worker
+    /////////////////////////////////
     if('serviceWorker' in navigator){
       navigator.serviceWorker.register('/service-worker.js');
     }
 
-    // 1) Alpine appData:
+    /////////////////////////////////
+    // Alpine data
+    /////////////////////////////////
     function appData(){
       return {
         currentView:'calculator',
         calcList:[],
 
-        // Called on the "Saved" page to refresh the list
         async fetchCalcList(){
           try{
             let resp=await fetch('/api/awesome');
-            if(!resp.ok) throw new Error('Failed to fetch list');
+            if(!resp.ok) throw new Error('Failed to fetch saved calculators');
             let data=await resp.json();
             this.calcList=data;
-          } catch(err){
-            console.error('fetchCalcList error:',err);
-            alert('Could not fetch. See console.');
+          } catch(e){
+            console.error('fetchCalcList:',e);
+            alert('Failed to fetch list. See console.');
           }
         },
-
-        // We can call the global loadCalculatorFromList
-        // from an Alpine snippet. It's a global, so just do that:
         loadFromList(id){
+          // calls the global function
           loadCalculatorFromList(id);
         }
-      }
+      };
     }
 
-
-    ///////////////////////////
-    // OLD WORKING CALCULATOR
-    ///////////////////////////
+    /////////////////////////////////
+    // Global variables for the calculator
+    /////////////////////////////////
     let selectedTab='lease';
     let lastChangedTaxField='percentage';
     let lastChangedResidualField='percentage';
 
+    /////////////////////////////////
+    // Tab switching
+    /////////////////////////////////
     function selectTab(tabName){
       selectedTab=tabName;
-      document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(btn=>btn.classList.remove('active'));
       document.getElementById(tabName+'Tab').classList.add('active');
       updateFormVisibility();
       updateCalculations();
     }
     function updateFormVisibility(){
-      document.getElementById('leaseForm').style.display=(selectedTab==='lease'?'block':'none');
-      document.getElementById('financingForm').style.display=(selectedTab==='financing'?'block':'none');
-      document.getElementById('cashForm').style.display=(selectedTab==='cash'?'block':'none');
+      document.getElementById('leaseForm').style.display=(selectedTab==='lease')?'block':'none';
+      document.getElementById('financingForm').style.display=(selectedTab==='financing')?'block':'none';
+      document.getElementById('cashForm').style.display=(selectedTab==='cash')?'block':'none';
     }
 
+    /////////////////////////////////
+    // Real-time sync logic
+    /////////////////////////////////
     function leaseVehicleOrRebatesChanged(){
       syncLeaseTaxes();
       syncLeaseResidual();
@@ -129,147 +136,321 @@
     }
 
     function syncLeaseTaxes(){
-      // your logic for lease taxes
+      // Suppose we grab vehiclePrice - rebates => negotiated
+      const vehiclePrice=parseFloat(document.getElementById('leaseVehiclePrice').value)||0;
+      const rebates=parseFloat(document.getElementById('leaseRebatesAndDiscounts').value)||0;
+      const negotiated=vehiclePrice-rebates;
+      let taxPercentEl=document.getElementById('leaseTaxPercentage');
+      let taxTotalEl=document.getElementById('leaseTaxTotal');
+
+      if(negotiated<=0){
+        if(lastChangedTaxField==='percentage'){
+          taxTotalEl.value='0';
+        } else {
+          taxPercentEl.value='0';
+        }
+        return;
+      }
+
+      let taxPercent=parseFloat(taxPercentEl.value)||0;
+      let taxTotal=parseFloat(taxTotalEl.value)||0;
+      if(lastChangedTaxField==='percentage'){
+        let computed=negotiated*(taxPercent/100);
+        taxTotalEl.value=computed.toFixed(2);
+      } else {
+        // total => percentage
+        let computedPercent=(taxTotal/negotiated)*100;
+        taxPercentEl.value=computedPercent.toFixed(2);
+      }
     }
     function syncLeaseResidual(){
-      // your logic for residual
-    }
+      const vehiclePrice=parseFloat(document.getElementById('leaseVehiclePrice').value)||0;
+      let resPercentEl=document.getElementById('residualValue');
+      let resTotalEl=document.getElementById('residualValueTotal');
+      let rPercent=parseFloat(resPercentEl.value)||0;
+      let rTotal=parseFloat(resTotalEl.value)||0;
 
-    function calculateLeaseCosts(data){
-      // your old lease logic
-      return {
-        monthlyPayment:'0.00',
-        totalUpfrontCost:'0.00',
-        totalYearlyCost:'0.00',
-        totalMonthlyCost:'0.00',
-        aprEquivalent:'0%',
-        negotiatedPrice:'0.00',
-        netCapCost:'0.00',
-        residualValue:'0.00',
-        monthlyDepreciation:'0.00',
-        monthlyFinanceCharge:'0.00',
-        totalDepreciation:'0.00',
-        totalFinanceCharges:'0.00',
-        totalLeasePayments:'0.00'
-      };
-    }
-    function calculateCashCosts(data){
-      // your old cash logic
-      return {
-        totalLoanCost:'0.00',
-        totalUpfrontCost:'0.00',
-        totalYearlyCost:'0.00',
-        totalMonthlyCost:'0.00'
-      };
-    }
-    function calculateGranularCosts(data){
-      if(data.option==='lease'){
-        return calculateLeaseCosts(data);
-      } else if(data.option==='financing'){
-        return {
-          monthlyPayment:'0.00',
-          totalUpfrontCost:'0.00',
-          totalYearlyCost:'0.00',
-          totalMonthlyCost:'0.00'
-        };
+      if(vehiclePrice<=0){
+        if(lastChangedResidualField==='percentage') resTotalEl.value='0';
+        else resPercentEl.value='0';
+        return;
+      }
+
+      if(lastChangedResidualField==='percentage'){
+        // compute total
+        let computed=vehiclePrice*(rPercent/100);
+        resTotalEl.value=computed.toFixed(2);
       } else {
-        return calculateCashCosts(data);
+        // compute percent
+        let computedPercent=(rTotal/vehiclePrice)*100;
+        resPercentEl.value=computedPercent.toFixed(2);
       }
     }
 
+    /////////////////////////////////
+    // Calculation
+    /////////////////////////////////
     function updateCalculations(){
+      // gather all data from whichever tab is active
       let data={};
       if(selectedTab==='lease'){
         data.option='lease';
-        // gather e.g. data.vehiclePrice = parseFloat(...)
-      } else if(selectedTab==='financing'){
-        data.option='financing';
-      } else {
-        data.option='cash';
+        const vehiclePrice=parseFloat(document.getElementById('leaseVehiclePrice').value)||0;
+        const rebates=parseFloat(document.getElementById('leaseRebatesAndDiscounts').value)||0;
+        data.negotiated=vehiclePrice-rebates;
+
+        data.downPayment=parseFloat(document.getElementById('leaseDownPayment').value)||0;
+        data.termMonths=parseInt(document.getElementById('leaseTermMonths').value)||36;
+
+        // residual
+        const resPercent=parseFloat(document.getElementById('residualValue').value)||0;
+        const resTotal=parseFloat(document.getElementById('residualValueTotal').value)||0;
+        data.lastChangedResidualField=lastChangedResidualField;
+        data.vehiclePrice=vehiclePrice;
+        data.resPercent=resPercent;
+        data.resTotal=resTotal;
+
+        data.moneyFactor=parseFloat(document.getElementById('moneyFactor').value)||0;
+        // taxes
+        data.lastChangedTaxField=lastChangedTaxField;
+        const taxPercent=parseFloat(document.getElementById('leaseTaxPercentage').value)||0;
+        const taxTotal=parseFloat(document.getElementById('leaseTaxTotal').value)||0;
+        data.taxPercent=taxPercent; 
+        data.taxTotal=taxTotal;
+
+        data.capitalizeTaxes=document.getElementById('leaseAddTaxesToLease').checked;
+        data.fees=parseFloat(document.getElementById('leaseAdditionalFees').value)||0;
+        data.capitalizeFees=document.getElementById('leaseAddFeesToLease').checked;
+
+        data.maintenance=parseFloat(document.getElementById('leaseMaintenanceCost').value)||0;
+        data.monthlyInsurance=parseFloat(document.getElementById('leaseMonthlyInsurance').value)||0;
+        data.monthlyFuel=parseFloat(document.getElementById('leaseMonthlyFuel').value)||0;
+
+        data.option='lease';
+        const result=calculateLeaseCostsAll(data);
+        showLeaseResults(result);
       }
-      let result=calculateGranularCosts(data);
-      updateUI(result);
-    }
-    function updateUI(calc){
-      // sets monthlyPayment, totalUpfrontCost, etc.
-      document.getElementById('results').classList.remove('hidden');
+      else if(selectedTab==='cash'){
+        data.option='cash';
+        // do a full "cash" logic
+        const vehiclePrice=parseFloat(document.getElementById('cashVehiclePrice').value)||0;
+        const taxPercent=parseFloat(document.getElementById('cashTaxPercentage').value)||0;
+        const taxesCapitalized=document.getElementById('cashAddTaxesToCash').checked;
+        const fees=parseFloat(document.getElementById('cashAdditionalFees').value)||0;
+        const feesCapitalized=document.getElementById('cashAddFeesToCash').checked;
+        const maintenance=parseFloat(document.getElementById('cashMaintenanceCost').value)||0;
+        const monthlyInsurance=parseFloat(document.getElementById('cashMonthlyInsurance').value)||0;
+        const monthlyFuel=parseFloat(document.getElementById('cashMonthlyFuel').value)||0;
+        let cData={
+          vehiclePrice,
+          taxPercent,
+          taxesCapitalized,
+          fees,
+          feesCapitalized,
+          maintenance,
+          monthlyInsurance,
+          monthlyFuel
+        };
+        let cResult=calculateCashCostsAll(cData);
+        showCashResults(cResult);
+      }
+      else {
+        // financing placeholder
+        document.getElementById('results').classList.remove('hidden');
+      }
     }
 
-    // Minimal example saving to /api/awesome
+    function calculateLeaseCostsAll(d){
+      // replicate your prior advanced logic
+      const net= d.negotiated;
+      // compute real taxes
+      let actualTax=0;
+      if(d.lastChangedTaxField==='percentage'){
+        actualTax=net*(d.taxPercent/100);
+      } else {
+        actualTax=d.taxTotal;
+      }
+      let capCost=net;
+      if(d.capitalizeTaxes) capCost+=actualTax;
+
+      if(d.capitalizeFees) capCost+=d.fees;
+
+      // residual
+      let actualResidual=0;
+      if(d.lastChangedResidualField==='percentage'){
+        actualResidual= d.vehiclePrice*(d.resPercent/100);
+      } else {
+        actualResidual= d.resTotal;
+      }
+
+      let netCapCost=capCost-d.downPayment;
+      let monthlyDep= (netCapCost-actualResidual)/ d.termMonths;
+      let financeCharge= ((netCapCost+actualResidual)* d.moneyFactor);
+      let monthlyPayment= monthlyDep+ financeCharge;
+
+      // etc
+      let totalUpfront= d.downPayment + (d.capitalizeTaxes?0:actualTax) + (d.capitalizeFees?0:d.fees);
+      let monthlyTCO= monthlyPayment+(d.maintenance/12)+d.monthlyInsurance+ d.monthlyFuel;
+      let annualTCO= (monthlyPayment*12)+ d.maintenance+( d.monthlyInsurance*12)+( d.monthlyFuel*12);
+
+      return {
+        monthlyPayment: monthlyPayment.toFixed(2),
+        totalUpfrontCost: totalUpfront.toFixed(2),
+        totalYearlyCost: annualTCO.toFixed(2),
+        totalMonthlyCost: monthlyTCO.toFixed(2),
+        aprEquivalent: (d.moneyFactor*2400).toFixed(2)+'%',
+        negotiatedPrice: net.toFixed(2),
+        netCapCost: netCapCost.toFixed(2),
+        residualValue: actualResidual.toFixed(2),
+        monthlyDepreciation: monthlyDep.toFixed(2),
+        monthlyFinanceCharge: financeCharge.toFixed(2),
+        totalDepreciation: (monthlyDep* d.termMonths).toFixed(2),
+        totalFinanceCharges: (financeCharge* d.termMonths).toFixed(2),
+        totalLeasePayments: (monthlyPayment* d.termMonths).toFixed(2),
+      };
+    }
+
+    function showLeaseResults(r){
+      // show result in UI
+      document.getElementById('results').classList.remove('hidden');
+      document.getElementById('monthlyPayment').innerText="Monthly Lease Payment: $"+ r.monthlyPayment;
+      document.getElementById('totalUpfrontCost').innerText="Total Upfront Cost: $"+ r.totalUpfrontCost;
+      document.getElementById('totalYearlyCost').innerText="Yearly Cost: $"+ r.totalYearlyCost;
+      document.getElementById('totalMonthlyCost').innerText="Monthly Cost: $"+ r.totalMonthlyCost;
+
+      document.getElementById('leaseExtraInfo').style.display='block';
+      document.getElementById('aprEquivalent').innerText="APR eq: "+ r.aprEquivalent;
+      document.getElementById('negotiatedPriceOutput').innerText="Negotiated: $"+ r.negotiatedPrice;
+      document.getElementById('netCapCostOutput').innerText="Net Cap: $"+ r.netCapCost;
+      document.getElementById('residualValueOutput').innerText="Residual: $"+ r.residualValue;
+      document.getElementById('monthlyDepreciationOutput').innerText="Monthly Dep: $"+ r.monthlyDepreciation;
+      document.getElementById('monthlyFinanceChargeOutput').innerText="Monthly Finance: $"+ r.monthlyFinanceCharge;
+      document.getElementById('totalDepreciationOutput').innerText="Total Dep: $"+ r.totalDepreciation;
+      document.getElementById('totalFinanceChargesOutput').innerText="Total Finance: $"+ r.totalFinanceCharges;
+      document.getElementById('totalLeasePaymentsOutput').innerText="Total Payment: $"+ r.totalLeasePayments;
+
+      // color coding monthlyPayment
+      const payEl=document.getElementById('monthlyPayment');
+      payEl.classList.remove('green','yellow','red');
+      const numeric= parseFloat(r.monthlyPayment);
+      if(numeric<400) payEl.classList.add('green');
+      else if(numeric<700) payEl.classList.add('yellow');
+      else payEl.classList.add('red');
+    }
+
+    function calculateCashCostsAll(d){
+      // replicate your prior advanced logic
+      let vPrice= d.vehiclePrice;
+      let taxes= vPrice*(d.taxPercent/100);
+      if(d.taxesCapitalized) { vPrice+=taxes; taxes=0; }
+      if(d.feesCapitalized) { vPrice+= d.fees; d.fees=0; }
+      let upfront= vPrice + taxes + d.fees;
+      let annual= d.maintenance+( d.monthlyInsurance*12)+( d.monthlyFuel*12);
+      let monthly= (d.maintenance/12)+ d.monthlyInsurance+ d.monthlyFuel;
+      return {
+        totalLoanCost: vPrice.toFixed(2),
+        totalUpfrontCost: upfront.toFixed(2),
+        totalYearlyCost: annual.toFixed(2),
+        totalMonthlyCost: monthly.toFixed(2)
+      };
+    }
+
+    function showCashResults(r){
+      document.getElementById('results').classList.remove('hidden');
+      document.getElementById('monthlyPayment').innerText="Cost: $"+ r.totalLoanCost;
+      document.getElementById('totalUpfrontCost').innerText="Upfront: $"+ r.totalUpfrontCost;
+      document.getElementById('totalYearlyCost').innerText="Annual: $"+ r.totalYearlyCost;
+      document.getElementById('totalMonthlyCost').innerText="Monthly: $"+ r.totalMonthlyCost;
+      document.getElementById('leaseExtraInfo').style.display='none';
+      // color coding
+      const payEl=document.getElementById('monthlyPayment');
+      payEl.classList.remove('green','yellow','red');
+    }
+
+    /////////////////////////////////
+    // Save & Load from API
+    /////////////////////////////////
     async function saveCalculatorToApi(){
-      let calc_type=selectedTab;
+      let calc_type= selectedTab;
+      // gather relevant fields
       let vehicle_price=0;
       if(calc_type==='lease'){
-        vehicle_price=document.getElementById('leaseVehiclePrice').value||0;
+        vehicle_price= parseFloat(document.getElementById('leaseVehiclePrice').value)||0;
       } else if(calc_type==='cash'){
-        vehicle_price=document.getElementById('cashVehiclePrice').value||0;
+        vehicle_price= parseFloat(document.getElementById('cashVehiclePrice').value)||0;
       }
-      const data={ calc_type, vehicle_price };
-      try {
-        let resp=await fetch('/api/awesome',{
+      // could gather more
+      let payload={ calc_type, vehicle_price };
+      try{
+        let resp= await fetch('/api/awesome',{
           method:'POST',
           headers:{
             'Content-Type':'application/json',
             'Accept':'application/json',
-            'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
           },
-          body:JSON.stringify(data)
+          body: JSON.stringify(payload)
         });
-        let result=await resp.json();
+        let out= await resp.json();
         if(!resp.ok){
-          console.error('Save error:',result);
-          alert('Failed to save. See console.');
+          console.error('Save error:', out);
+          alert('Failed to save. Check console.');
         } else {
-          alert('Saved to /api/awesome');
+          alert('Calculator saved successfully.');
         }
       } catch(err){
-        console.error('saveCalculatorToApi error:',err);
+        console.error('Error saving calculator:',err);
         alert('Error. See console.');
       }
     }
 
-    // loadCalculatorFromList is global, but we?ll call it from Alpine
     async function loadCalculatorFromList(id){
-      try {
-        let resp=await fetch('/api/awesome/'+id);
-        if(!resp.ok) throw new Error('Load error:'+id);
+      try{
+        let resp= await fetch('/api/awesome/'+id);
+        if(!resp.ok) throw new Error('Failed to load record '+id);
         let calc=await resp.json();
-        selectedTab=calc.calc_type||'lease';
+        // interpret calc_type => selectedTab
+        selectedTab= calc.calc_type||'lease';
         document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
         document.getElementById(selectedTab+'Tab').classList.add('active');
         updateFormVisibility();
-        // fill fields if lease, cash, etc.
+
+        // fill fields
         if(selectedTab==='lease'){
-          document.getElementById('leaseVehiclePrice').value=calc.vehicle_price||'';
-          document.getElementById('leaseRebatesAndDiscounts').value=calc.rebates_and_discounts||'';
-          document.getElementById('leaseDownPayment').value=calc.down_payment||'';
-          document.getElementById('leaseTermMonths').value=calc.term_months||'36';
-          document.getElementById('residualValue').value=calc.residual_percent||'';
-          document.getElementById('residualValueTotal').value=calc.residual_value||'';
-          document.getElementById('moneyFactor').value=calc.money_factor||'';
-          document.getElementById('leaseTaxPercentage').value=calc.tax_percent||'';
-          document.getElementById('leaseTaxTotal').value=calc.tax_total||'';
-          document.getElementById('leaseAddTaxesToLease').checked=calc.capitalize_taxes?true:false;
-          document.getElementById('leaseAdditionalFees').value=calc.additional_fees||'';
-          document.getElementById('leaseAddFeesToLease').checked=calc.capitalize_fees?true:false;
-          document.getElementById('leaseMaintenanceCost').value=calc.maintenance_cost||'';
-          document.getElementById('leaseMonthlyInsurance').value=calc.monthly_insurance||'';
-          document.getElementById('leaseMonthlyFuel').value=calc.monthly_fuel||'';
+          document.getElementById('leaseVehiclePrice').value= calc.vehicle_price||'';
+          document.getElementById('leaseRebatesAndDiscounts').value= calc.rebates_and_discounts||'';
+          document.getElementById('leaseDownPayment').value= calc.down_payment||'0';
+          document.getElementById('leaseTermMonths').value= calc.term_months||'36';
+          document.getElementById('residualValue').value= calc.residual_percent||'';
+          document.getElementById('residualValueTotal').value= calc.residual_value||'';
+          document.getElementById('moneyFactor').value= calc.money_factor||'';
+          document.getElementById('leaseTaxPercentage').value= calc.tax_percent||'';
+          document.getElementById('leaseTaxTotal').value= calc.tax_total||'';
+          document.getElementById('leaseAddTaxesToLease').checked= calc.capitalize_taxes?true:false;
+          document.getElementById('leaseAdditionalFees').value= calc.additional_fees||'';
+          document.getElementById('leaseAddFeesToLease').checked= calc.capitalize_fees?true:false;
+          document.getElementById('leaseMaintenanceCost').value= calc.maintenance_cost||'0';
+          document.getElementById('leaseMonthlyInsurance').value= calc.monthly_insurance||'0';
+          document.getElementById('leaseMonthlyFuel').value= calc.monthly_fuel||'0';
         } else if(selectedTab==='cash'){
-          document.getElementById('cashVehiclePrice').value=calc.vehicle_price||'';
-          document.getElementById('cashTaxPercentage').value=calc.tax_percent||'';
-          document.getElementById('cashAddTaxesToCash').checked=calc.capitalize_taxes?true:false;
-          document.getElementById('cashAdditionalFees').value=calc.additional_fees||'';
-          document.getElementById('cashAddFeesToCash').checked=calc.capitalize_fees?true:false;
-          document.getElementById('cashMaintenanceCost').value=calc.maintenance_cost||'';
-          document.getElementById('cashMonthlyInsurance').value=calc.monthly_insurance||'';
-          document.getElementById('cashMonthlyFuel').value=calc.monthly_fuel||'';
+          document.getElementById('cashVehiclePrice').value= calc.vehicle_price||'0';
+          document.getElementById('cashTaxPercentage').value= calc.tax_percent||'0';
+          document.getElementById('cashAddTaxesToCash').checked= calc.capitalize_taxes?true:false;
+          document.getElementById('cashAdditionalFees').value= calc.additional_fees||'0';
+          document.getElementById('cashAddFeesToCash').checked= calc.capitalize_fees?true:false;
+          document.getElementById('cashMaintenanceCost').value= calc.maintenance_cost||'0';
+          document.getElementById('cashMonthlyInsurance').value= calc.monthly_insurance||'0';
+          document.getElementById('cashMonthlyFuel').value= calc.monthly_fuel||'0';
+        } else {
+          // financing not fully implemented
         }
+
+        // recalc
         updateCalculations();
-        // switch to "calculator" page in Alpine
+        // switch Alpine => "calculator" view
         document.querySelector('html').__x.$data.currentView='calculator';
-      } catch(err){
-        console.error('loadCalculatorFromList error:',err);
+      } catch(e){
+        console.error('loadCalculatorFromList:', e);
         alert('Load error. See console.');
       }
     }
@@ -344,7 +525,7 @@
           <button style="margin-top:0.5rem;" onclick="saveCalculatorToApi()">Save Lease to /api/awesome</button>
         </div>
 
-        <!-- FINANCING FORM -->
+        <!-- FINANCING FORM (placeholder) -->
         <div id="financingForm" style="display:none;">
           <p style="color:#ccc;">Financing form (placeholder)</p>
         </div>
