@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ currentPage:'calculator', tab:'lease', calcList:[] }" x-init="initMainApp()">
+<html lang="en" x-data="{ currentView:'calculator', calcList:[] }">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
@@ -7,7 +7,9 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1e1e2f">
 
+  <!-- Alpine for top nav only -->
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- Optional CSRF -->
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <style>
@@ -18,12 +20,6 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       font-size: 16px;
     }
-    .app-container {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: auto;
-    }
     .top-nav {
       background: #2a2a3c;
       color: #fff;
@@ -32,7 +28,7 @@
       align-items: center;
       padding: 0.75rem 1rem;
     }
-    .top-nav .nav-links button {
+    .top-nav .nav-section button {
       background: #444;
       color: #bbb;
       border: none;
@@ -41,34 +37,22 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    .top-nav .nav-links button.active {
+    .top-nav .nav-section button.active {
       background: #007aff;
       color: #fff;
+      font-weight: bold;
     }
-
     .content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
       padding: 1rem;
-      gap: 1rem;
     }
     .card {
       background: #2a2a3c;
       border-radius: 12px;
       padding: 1rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+      margin-bottom: 1rem;
       color: #fff;
     }
-    label {
-      display: block;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      color: #eee;
-    }
+    /* Keep the old calculator styling from your previous code... */
     input[type="number"], input[type="text"] {
       background: #333;
       color: #fff;
@@ -78,85 +62,75 @@
       font-size: 1rem;
       width: 100%;
     }
-    .checkbox-label {
-      display: flex;
-      align-items: center;
-      color: #eee;
-      gap: 0.5rem;
-    }
-    .small-label {
-      color: #eee;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-    .flex-row {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .cost-indicator {
-      padding: 0.5rem;
-      border-radius: 6px;
-      display: inline-block;
-      margin-bottom: 1rem;
-      font-weight: bold;
-    }
-    .green { background-color: #4caf50; color: #fff; }
-    .yellow { background-color: #ffeb3b; color: #000; }
-    .red { background-color: #f44336; color: #fff; }
-    .btn-dark {
-      background: #555;
-      color: #eee;
-      border: 1px solid #666;
+    .tab {
+      background: #444;
+      color: #bbb;
       padding: 0.5rem 1rem;
-      border-radius: 5px;
+      margin-right: 0.5rem;
+      border-radius: 6px;
       cursor: pointer;
-      margin-top: 1rem;
+      border: none;
     }
-    .btn-dark:hover {
-      background: #777;
+    .tab.active {
+      background: #007aff;
+      color: #fff;
     }
+    /* etc... */
     .hidden { display: none; }
   </style>
 
+  <!-- The existing calculator script (unchanged) -->
   <script>
     // Service Worker registration
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js');
     }
 
-    // MAIN SPA CODE
-    function initMainApp() {
-      // default page is "calculator"
-      // we can fetch the entire list of calcList in the background if we want
-    }
+    // We preserve your original approach for the calculator tabs:
+    let selectedTab = 'lease';
+    let lastChangedTaxField = 'percentage';
+    let lastChangedResidualField = 'percentage';
 
-    async function fetchAllCalcs() {
+    function selectTab(tabName) {
+      selectedTab = tabName;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(tabName+'Tab').classList.add('active');
+      updateFormVisibility();
+      updateCalculations();
+    }
+    function updateFormVisibility() {
+      document.getElementById('leaseForm').style.display = (selectedTab==='lease') ? 'block' : 'none';
+      document.getElementById('financingForm').style.display = (selectedTab==='financing') ? 'block' : 'none';
+      document.getElementById('cashForm').style.display = (selectedTab==='cash') ? 'block' : 'none';
+    }
+    // ... keep all your existing logic: syncLeaseTaxes, syncLeaseResidual, 
+    // calculateLeaseCosts, calculateCashCosts, updateUI, etc.
+
+    async function fetchCalcList() {
       try {
         let resp = await fetch('/api/awesome');
-        if (!resp.ok) throw new Error('Failed to get list');
+        if (!resp.ok) throw new Error('Failed to fetch');
         let data = await resp.json();
-        // we store it in Alpine's calcList
+        // store in Alpine's calcList
         document.querySelector('[x-data]').__x.$data.calcList = data;
       } catch(err) {
-        console.error('Error fetching calc list:', err);
+        console.error('Error fetching list:', err);
       }
     }
 
     async function loadCalculatorFromList(id) {
-      // fetch single record
       try {
         let resp = await fetch('/api/awesome/' + id);
-        if(!resp.ok) throw new Error('Load error: ' + id);
+        if(!resp.ok) throw new Error('Load error ' + id);
         let calc = await resp.json();
-        // set the type => tab
-        let newTab = calc.calc_type || 'lease';
-        document.querySelector('[x-data]').__x.$data.tab = newTab;
-        window.selectedTab = newTab;
+        // read calc_type => set selectedTab
+        selectedTab = calc.calc_type || 'lease';
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(selectedTab+'Tab').classList.add('active');
+        updateFormVisibility();
 
-        if(newTab==='lease') {
-          // fill fields
+        // fill in fields
+        if(selectedTab==='lease') {
           document.getElementById('leaseVehiclePrice').value = calc.vehicle_price || '';
           document.getElementById('leaseRebatesAndDiscounts').value = calc.rebates_and_discounts || '';
           document.getElementById('leaseDownPayment').value = calc.down_payment || '';
@@ -166,128 +140,98 @@
           document.getElementById('moneyFactor').value = calc.money_factor || '';
           document.getElementById('leaseTaxPercentage').value = calc.tax_percent || '';
           document.getElementById('leaseTaxTotal').value = calc.tax_total || '';
-          document.getElementById('leaseAddTaxesToLease').checked = calc.capitalize_taxes ? true : false;
+          document.getElementById('leaseAddTaxesToLease').checked = (calc.capitalize_taxes ? true : false);
           document.getElementById('leaseAdditionalFees').value = calc.additional_fees || '';
-          document.getElementById('leaseAddFeesToLease').checked = calc.capitalize_fees ? true : false;
+          document.getElementById('leaseAddFeesToLease').checked = (calc.capitalize_fees ? true : false);
           document.getElementById('leaseMaintenanceCost').value = calc.maintenance_cost || '';
           document.getElementById('leaseMonthlyInsurance').value = calc.monthly_insurance || '';
           document.getElementById('leaseMonthlyFuel').value = calc.monthly_fuel || '';
-        } else if(newTab==='cash') {
+        } else if (selectedTab==='cash') {
           document.getElementById('cashVehiclePrice').value = calc.vehicle_price || '';
           document.getElementById('cashTaxPercentage').value = calc.tax_percent || '';
-          document.getElementById('cashAddTaxesToCash').checked = calc.capitalize_taxes ? true : false;
+          document.getElementById('cashAddTaxesToCash').checked = (calc.capitalize_taxes ? true : false);
           document.getElementById('cashAdditionalFees').value = calc.additional_fees || '';
-          document.getElementById('cashAddFeesToCash').checked = calc.capitalize_fees ? true : false;
+          document.getElementById('cashAddFeesToCash').checked = (calc.capitalize_fees ? true : false);
           document.getElementById('cashMaintenanceCost').value = calc.maintenance_cost || '';
           document.getElementById('cashMonthlyInsurance').value = calc.monthly_insurance || '';
           document.getElementById('cashMonthlyFuel').value = calc.monthly_fuel || '';
         } else {
-          // do financing if you implement
+          // financing (not yet fully implemented)
         }
-        // go back to "calculator" page
-        document.querySelector('[x-data]').__x.$data.currentPage = 'calculator';
+        // finally recalc
         updateCalculations();
+        // switch page in Alpine to "calculator"
+        document.querySelector('[x-data]').__x.$data.currentView='calculator';
       } catch(err) {
         console.error('loadCalculatorFromList error:', err);
-        alert('Failed to load calculator. See console.');
+        alert('Failed to load. Check console.');
       }
     }
 
-    // The function to POST minimal data to /api/awesome
+    // Minimal example for saving to /api/awesome
     async function saveCalculatorToApi() {
-      let calc_type = window.selectedTab; 
+      let calc_type = selectedTab; // 'lease','financing','cash'
       let vehicle_price = 0;
-
-      if (calc_type==='lease') {
+      if(calc_type==='lease'){
         vehicle_price = document.getElementById('leaseVehiclePrice').value || 0;
-      } else if (calc_type==='cash') {
+      } else if (calc_type==='cash'){
         vehicle_price = document.getElementById('cashVehiclePrice').value || 0;
-      } else {
-        // handle or skip financing
       }
 
-      const data = {
-        calc_type,
-        vehicle_price
-      };
+      const data = { calc_type, vehicle_price };
 
       try {
         let resp = await fetch('/api/awesome', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            'Content-Type':'application/json',
+            'Accept':'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
           },
           body: JSON.stringify(data)
         });
         let result = await resp.json();
-        if (!resp.ok) {
+        if(!resp.ok){
           console.error('Save error:', result);
-          alert('Failed to save. Check console.');
+          alert('Failed to save. See console.');
         } else {
-          alert('Calculator saved to /api/awesome!');
+          alert('Saved to /api/awesome');
         }
       } catch(err) {
-        console.error('Saving error:', err);
+        console.error('saveCalculatorToApi error:', err);
         alert('Error. See console.');
       }
     }
 
-    // REPLACE your existing calculation logic (the long code)...
-
-    let selectedTab = 'lease';
-    let lastChangedTaxField = 'percentage';
-    let lastChangedResidualField = 'percentage';
-
-    function selectMainPage(pageName) {
-      document.querySelector('[x-data]').__x.$data.currentPage = pageName;
-      if(pageName==='saved'){
-        // fetch the entire list
-        fetchAllCalcs();
-      }
-    }
-
-    function selectTab(tabName) {
-      selectedTab = tabName;
-      document.querySelector('[x-data]').__x.$data.tab = tabName;
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.getElementById(tabName + 'Tab').classList.add('active');
-      updateFormVisibility();
-      updateCalculations();
-    }
-
-    // ... keep your existing syncLeaseTaxes, syncLeaseResidual, etc. ...
-    // ... keep your existing calculateLeaseCosts, calculateCashCosts ...
-    // ... keep your existing updateCalculations, updateUI ...
+    // Keep your existing code for the calculations: leaseTaxPercentageChanged, syncLeaseResidual, etc.
+    // ...
   </script>
 </head>
 <body>
-  <div class="app-container" x-data>
-    <!-- Top Nav Bar -->
+  <div class="app-container">
+
+    <!-- Top Nav with Alpine controlling which "page" we show -->
     <div class="top-nav">
-      <div class="nav-links">
-        <button :class="{ 'active': currentPage==='calculator' }" @click="selectMainPage('calculator')">Calculator</button>
-        <button :class="{ 'active': currentPage==='saved' }" @click="selectMainPage('saved')">Saved Calculators</button>
+      <div class="nav-section">
+        <button :class="{ 'active': currentView==='calculator' }" @click="currentView='calculator'">Calculator</button>
+        <button :class="{ 'active': currentView==='saved' }" @click="currentView='saved'; fetchCalcList()">Saved Calculators</button>
       </div>
-      <div class="app-title">
-        Fleet Ownership Cost Analyzer
-      </div>
+      <div style="font-weight:bold;">Fleet Ownership Cost Analyzer</div>
     </div>
 
     <div class="content">
-
       <!-- PAGE: Calculator -->
-      <div x-show="currentPage==='calculator'" style="display:none;">
+      <div x-show="currentView==='calculator'" style="display:none;">
+        
+        <!-- (Your existing calculator UI) -->
         <div class="card" id="inputSection">
-          <!-- EXACT same tab structure for lease/financing/cash -->
-          <div class="tab-bar">
-            <div id="leaseTab" class="tab" @click="selectTab('lease')">Lease</div>
-            <div id="financingTab" class="tab" @click="selectTab('financing')">Financing</div>
-            <div id="cashTab" class="tab" @click="selectTab('cash')">Cash</div>
+          <div style="margin-bottom:0.5rem;">
+            <button id="leaseTab" class="tab" onclick="selectTab('lease')">Lease</button>
+            <button id="financingTab" class="tab" onclick="selectTab('financing')">Financing</button>
+            <button id="cashTab" class="tab" onclick="selectTab('cash')">Cash</button>
           </div>
 
-          <!-- Lease Form -->
+          <!-- LEASE FORM -->
           <div id="leaseForm" style="display:none;">
             <label>Vehicle Price ($):
               <input type="number" id="leaseVehiclePrice" oninput="leaseVehicleOrRebatesChanged()">
@@ -334,15 +278,15 @@
             <label>Monthly Fuel/Electric ($):
               <input type="number" id="leaseMonthlyFuel" onchange="updateCalculations()">
             </label>
-            <button class="btn-dark" onclick="saveCalculatorToApi()">Save Lease to /api/awesome</button>
+            <button style="margin-top:0.5rem;" onclick="saveCalculatorToApi()">Save Lease to /api/awesome</button>
           </div>
 
-          <!-- Financing Form -->
+          <!-- FINANCING FORM -->
           <div id="financingForm" style="display:none;">
-            <p style="color:#ccc;">Financing form (TBD)</p>
+            <p style="color:#ccc;">Financing form here (todo)</p>
           </div>
 
-          <!-- Cash Form -->
+          <!-- CASH FORM -->
           <div id="cashForm" style="display:none;">
             <label>Vehicle Price ($):
               <input type="number" id="cashVehiclePrice" onchange="updateCalculations()">
@@ -368,38 +312,38 @@
             <label>Monthly Fuel/Electric ($):
               <input type="number" id="cashMonthlyFuel" onchange="updateCalculations()">
             </label>
-            <button class="btn-dark" onclick="saveCalculatorToApi()">Save Cash to /api/awesome</button>
+            <button style="margin-top:0.5rem;" onclick="saveCalculatorToApi()">Save Cash to /api/awesome</button>
           </div>
         </div>
 
-        <!-- Results Card -->
+        <!-- RESULTS SECTION (Your existing results UI) -->
         <div class="card results-section hidden" id="results">
           <h2>Ownership Cost Breakdown</h2>
           <div id="monthlyPayment" class="cost-indicator"></div>
-          <div id="totalUpfrontCost" class="detail"></div>
-          <div id="totalYearlyCost" class="detail"></div>
-          <div id="totalMonthlyCost" class="detail"></div>
-          <div id="leaseExtraInfo" style="display: none;">
+          <div id="totalUpfrontCost"></div>
+          <div id="totalYearlyCost"></div>
+          <div id="totalMonthlyCost"></div>
+          <div id="leaseExtraInfo" style="display:none;">
             <h3 style="margin-top:1rem; margin-bottom:0.5rem;">Additional Lease Details</h3>
-            <div id="aprEquivalent" class="detail"></div>
-            <div id="negotiatedPriceOutput" class="detail"></div>
-            <div id="netCapCostOutput" class="detail"></div>
-            <div id="residualValueOutput" class="detail"></div>
-            <div id="monthlyDepreciationOutput" class="detail"></div>
-            <div id="monthlyFinanceChargeOutput" class="detail"></div>
-            <div id="totalDepreciationOutput" class="detail"></div>
-            <div id="totalFinanceChargesOutput" class="detail"></div>
-            <div id="totalLeasePaymentsOutput" class="detail"></div>
+            <div id="aprEquivalent"></div>
+            <div id="negotiatedPriceOutput"></div>
+            <div id="netCapCostOutput"></div>
+            <div id="residualValueOutput"></div>
+            <div id="monthlyDepreciationOutput"></div>
+            <div id="monthlyFinanceChargeOutput"></div>
+            <div id="totalDepreciationOutput"></div>
+            <div id="totalFinanceChargesOutput"></div>
+            <div id="totalLeasePaymentsOutput"></div>
           </div>
         </div>
       </div>
 
       <!-- PAGE: Saved Calculators -->
-      <div x-show="currentPage==='saved'" style="display:none;">
+      <div x-show="currentView==='saved'" style="display:none;">
         <div class="card">
           <h2>My Saved Calculators</h2>
-          <button class="btn-dark" @click="fetchAllCalcs()">Refresh List</button>
-          <ul style="list-style:none; margin:0; padding:0;">
+          <button style="margin-bottom:0.5rem;" @click="fetchCalcList()">Refresh List</button>
+          <ul style="list-style:none; padding:0; margin:0;">
             <template x-for="calc in calcList" :key="calc.id">
               <li style="margin:0.5rem 0;">
                 <a href="#" style="color:#66afff; text-decoration:underline;"
