@@ -4,8 +4,10 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Fleet Ownership Cost Analyzer</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#ffffff">
+
+  <!-- Dark style from before (#1e1e2f), with white text, plus your leasing functionality -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1e1e2f">
 
   <!-- Alpine for tab switching only -->
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -16,8 +18,8 @@
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      background: #f2f2f7;
-      color: #333;
+      background: #1e1e2f; /* Dark */
+      color: #eee; /* Light text */
       font-size: 16px;
     }
     .app-container {
@@ -27,12 +29,13 @@
       overflow: auto;
     }
     .app-header {
-      background: #ffffff;
-      border-bottom: 1px solid #ccc;
+      background: #2a2a3c;
+      border-bottom: 1px solid #444;
       padding: 1rem;
       font-size: 1.25rem;
       font-weight: bold;
       text-align: center;
+      color: #fff;
     }
     .content {
       flex: 1;
@@ -42,13 +45,14 @@
       gap: 1rem;
     }
     .card {
-      background: #fff;
+      background: #2a2a3c;
       border-radius: 12px;
       padding: 1rem;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      color: #fff;
     }
     .tab-bar {
       display: flex;
@@ -59,8 +63,9 @@
       padding: 0.5rem 1rem;
       cursor: pointer;
       border-radius: 6px;
-      background: #eee;
+      background: #444;
       font-size: 1rem;
+      color: #bbb;
     }
     .tab.active {
       background: #007aff;
@@ -72,23 +77,28 @@
       font-size: 1rem;
       margin-bottom: 0.5rem;
       font-weight: 500;
+      color: #eee;
     }
     input[type="number"], input[type="text"] {
       width: 100%;
       padding: 0.75rem;
       font-size: 1rem;
-      border: 1px solid #ccc;
+      border: 1px solid #666;
       border-radius: 6px;
+      background: #333;
+      color: #fff;
     }
     .checkbox-label {
       display: flex;
       align-items: center;
       font-size: 1rem;
       gap: 0.5rem;
+      color: #eee;
     }
     .small-label {
       font-weight: 500;
       font-size: 0.9rem;
+      color: #eee;
     }
     .flex-row {
       display: flex;
@@ -103,63 +113,42 @@
       margin-bottom: 1rem;
       font-weight: bold;
     }
-    .green { background-color: #4caf50; color: white; }
-    .yellow { background-color: #ffeb3b; color: black; }
-    .red { background-color: #f44336; color: white; }
+    .green { background-color: #4caf50; color: #fff; }
+    .yellow { background-color: #ffeb3b; color: #000; }
+    .red { background-color: #f44336; color: #fff; }
     .results-section h2 {
       font-size: 1.25rem;
       margin-bottom: 1rem;
       font-weight: bold;
+      color: #fff;
     }
     .results-section .detail {
       margin-bottom: 0.5rem;
+      color: #fff;
+    }
+    .btn-dark {
+      background: #555;
+      color: #eee;
+      border: 1px solid #666;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    .btn-dark:hover {
+      background: #777;
     }
   </style>
+
   <script>
-    // PWA service worker registration (optional)
+    // Service Worker registration
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
+      navigator.serviceWorker.register('/service-worker.js');
     }
 
-    // We'll store the entire code with the same functional approach
     let selectedTab = 'lease';
     let lastChangedTaxField = 'percentage';
     let lastChangedResidualField = 'percentage';
-
-    // The existing calculator logic:
-    // We also have the ability to store data via /api/awesome if we want.
-    async function saveCalculatorToApi() {
-      // Example of how we might POST to /api/awesome
-      // Gather some fields from 'leaseVehiclePrice', etc. 
-      // For demonstration, just a minimal approach:
-      const data = {
-        calc_type: selectedTab,
-        vehicle_price: document.getElementById('leaseVehiclePrice').value || 0
-        // ... similarly map other fields
-      };
-
-      try {
-        let resp = await fetch('/api/awesome', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-          },
-          body: JSON.stringify(data)
-        });
-        let result = await resp.json();
-        if (!resp.ok) {
-          console.error('Save error:', result);
-          alert('Failed to save. Check console for details.');
-        } else {
-          alert('Calculator saved to DB!');
-        }
-      } catch(err) {
-        alert('Error saving. See console.');
-        console.error(err);
-      }
-    }
 
     function selectTab(tabName) {
       selectedTab = tabName;
@@ -170,9 +159,9 @@
     }
 
     function updateFormVisibility() {
-      document.getElementById('leaseForm').style.display = selectedTab === 'lease' ? 'block' : 'none';
-      document.getElementById('financingForm').style.display = selectedTab === 'financing' ? 'block' : 'none';
-      document.getElementById('cashForm').style.display = selectedTab === 'cash' ? 'block' : 'none';
+      document.getElementById('leaseForm').style.display = (selectedTab === 'lease') ? 'block' : 'none';
+      document.getElementById('financingForm').style.display = (selectedTab === 'financing') ? 'block' : 'none';
+      document.getElementById('cashForm').style.display = (selectedTab === 'cash') ? 'block' : 'none';
     }
 
     function leaseTaxPercentageChanged() {
@@ -263,12 +252,8 @@
       if (data.option === 'lease') {
         return calculateLeaseCosts(data);
       } else if (data.option === 'financing') {
-        return {
-          monthlyPayment: "0.00",
-          totalUpfrontCost: "0.00",
-          totalYearlyCost: "0.00",
-          totalMonthlyCost: "0.00"
-        };
+        // We can expand financing logic if needed
+        return {monthlyPayment:"0.00",totalUpfrontCost:"0.00",totalYearlyCost:"0.00",totalMonthlyCost:"0.00"};
       } else {
         return calculateCashCosts(data);
       }
@@ -304,7 +289,6 @@
         capCost += totalTaxAmount;
         totalTaxAmount = 0;
       }
-
       if (data.addFeesToLease) {
         capCost += additionalFees;
         additionalFees = 0;
@@ -354,7 +338,6 @@
         vehiclePrice += taxes;
         taxes = 0;
       }
-
       if (data.addFeesToCash) {
         vehiclePrice += additionalFees;
         additionalFees = 0;
@@ -441,7 +424,6 @@
         document.getElementById('leaseExtraInfo').style.display = 'none';
       }
 
-      // Color coding
       const monthlyPaymentEl = document.getElementById('monthlyPayment');
       monthlyPaymentEl.className = 'cost-indicator';
       if ((selectedTab === 'lease' || selectedTab === 'financing') && calculations.monthlyPayment) {
@@ -457,6 +439,10 @@
 
       document.getElementById('results').classList.remove('hidden');
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      selectTab('lease'); // default to lease tab
+    });
   </script>
 </head>
 <body>
@@ -464,16 +450,16 @@
     <div class="app-header">Fleet Ownership Cost Analyzer</div>
     <div class="content">
 
-      <!-- Input Section (Calculator forms) -->
+      <!-- Input Section -->
       <div class="card" id="inputSection">
         <div class="tab-bar">
-          <div id="leaseTab" class="tab active" onclick="selectTab('lease')">Lease</div>
-          <div id="financingTab" class="tab" onclick="selectTab('financing')">Financing</div>
-          <div id="cashTab" class="tab" onclick="selectTab('cash')">Cash</div>
+          <div id="leaseTab" class="tab" @click="tab='lease'; selectTab('lease')">Lease</div>
+          <div id="financingTab" class="tab" @click="tab='financing'; selectTab('financing')">Financing</div>
+          <div id="cashTab" class="tab" @click="tab='cash'; selectTab('cash')">Cash</div>
         </div>
 
         <!-- Lease Form -->
-        <div id="leaseForm">
+        <div id="leaseForm" style="display:none;">
           <label>Vehicle Price ($):
             <input type="number" id="leaseVehiclePrice" oninput="leaseVehicleOrRebatesChanged()">
           </label>
@@ -519,14 +505,12 @@
           <label>Monthly Fuel/Electric ($):
             <input type="number" id="leaseMonthlyFuel" onchange="updateCalculations()">
           </label>
-
-          <!-- Example button to store this lease data in /api/awesome -->
-          <button onclick="saveCalculatorToApi()" style="margin-top:1rem;">Save This to /api/awesome</button>
+          <button class="btn-dark" onclick="saveCalculatorToApi()">Save Lease to /api/awesome</button>
         </div>
 
         <!-- Financing Form -->
         <div id="financingForm" style="display:none;">
-          <p>Financing form (work in progress)</p>
+          <p style="color:#ccc;">Financing form (to be implemented if needed)</p>
         </div>
 
         <!-- Cash Form -->
@@ -555,9 +539,7 @@
           <label>Monthly Fuel/Electric ($):
             <input type="number" id="cashMonthlyFuel" onchange="updateCalculations()">
           </label>
-
-          <!-- Example button to store this cash data in /api/awesome -->
-          <button onclick="saveCalculatorToApi()" style="margin-top:1rem;">Save Cash Calc to /api/awesome</button>
+          <button class="btn-dark" onclick="saveCalculatorToApi()">Save Cash to /api/awesome</button>
         </div>
       </div>
 
